@@ -1,10 +1,10 @@
 import type { NextRequest } from 'next/server';
 
-import { middleware as paraglide } from '@/lib/i18n';
+import { updateSession } from './utils/supabase/updateSession';
 
-export function middleware(request: NextRequest) {
-  const response = paraglide(request);
-  return response;
+export async function middleware(request: NextRequest) {
+  // const response = paraglide(request);
+  return await updateSession(request);
 }
 
 export const config = {
@@ -16,6 +16,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
