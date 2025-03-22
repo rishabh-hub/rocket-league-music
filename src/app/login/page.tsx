@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 export default function LoginPage() {
   return (
     <form>
-      <label htmlFor="email">Email:</label>
+      {/* <label htmlFor="email">Email:</label>
       <input id="email" name="email" type="email" required />
       <label htmlFor="password">Password:</label>
-      <input id="password" name="password" type="password" required />
+      <input id="password" name="password" type="password" required /> */}
       <button formAction={login}>Log in</button>
       <button formAction={signup}>Sign up</button>
       <div>
-        <Button className=" m-4" onClick={googleOauthLogin}>
+        <Button className=" m-4" formAction={googleOauthLogin}>
           {' '}
           Google Oauth Signup up
         </Button>

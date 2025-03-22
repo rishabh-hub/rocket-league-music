@@ -9,6 +9,8 @@ export async function GET(request: Request) {
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/';
 
+  console.log(`########## NEXT IS ${next} ${origin} ###########`);
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

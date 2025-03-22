@@ -31,15 +31,13 @@ export async function googleOauthLogin() {
   );
   const supabase = await createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  //   const data = {
-  //     email: formData.get('email') as string,
-  //     password: formData.get('password') as string,
-  //   };
+  const callbackUrl = 'http://localhost:3000/auth/callback';
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
+    options: {
+      redirectTo: callbackUrl,
+    },
   });
 
   if (error) {
@@ -49,8 +47,8 @@ export async function googleOauthLogin() {
     `################# AUTH GOOGLE SUCCESSFULL ${JSON.stringify(data)} ##################`
   );
 
-  revalidatePath('/', 'layout');
-  redirect('/');
+  //   revalidatePath('/', 'layout');
+  redirect(data.url);
 }
 
 export async function signup(formData: FormData) {
@@ -71,4 +69,9 @@ export async function signup(formData: FormData) {
 
   revalidatePath('/', 'layout');
   redirect('/');
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 }
