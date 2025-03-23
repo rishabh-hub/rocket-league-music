@@ -10,25 +10,31 @@ import { createClient } from '@/utils/supabase/server';
 export const Navbar = async () => {
   const supabase = await createClient();
 
-  const session = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
 
-  if (!session.data.user)
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-bold">Not Authenticated</h1>
-        <Link className="btn" href="/login">
-          Sign in
-        </Link>
-      </div>
-    );
+  // Fetch subscription status from Supabase if user is authenticated
+  let isProUser = false;
+  let userImage = undefined;
+  let userName = undefined;
 
-  const {
-    data: {
-      user: { user_metadata },
-    },
-  } = session;
+  if (user) {
+    // Get user metadata (including possible profile image from Google auth)
+    userImage = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+    userName = user.user_metadata?.name || user.user_metadata?.full_name;
 
-  const { email } = user_metadata;
+    // Fetch subscription data from your subscriptions table
+    const { data: subscriptionData } = await supabase
+      .from('subscriptions')
+      .select('status, price_id')
+      .eq('user_id', user.id)
+      .single();
+
+    // Check if user has an active subscription
+    isProUser =
+      subscriptionData?.status === 'active' ||
+      subscriptionData?.status === 'trialing';
+  }
 
   // const userName = user_name ? `@${user_name}` : 'User Name Not Set';
 
@@ -39,7 +45,17 @@ export const Navbar = async () => {
           {m.app_name()}
         </Link>
         <div className="flex items-center gap-2">
-          {session ? <UserDropdown session={email} /> : <SignInButton />}
+          {user ? (
+            <UserDropdown
+              session={user.email || user.user_metadata?.email || 'User'}
+              isProUser={isProUser}
+              userImage={userImage}
+              userName={userName}
+            />
+          ) : (
+            <SignInButton />
+          )}
+
           <LanguageSwitcher />
         </div>
       </div>

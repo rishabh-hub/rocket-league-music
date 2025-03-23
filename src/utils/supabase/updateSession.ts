@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+  let supabaseResponse = await NextResponse.next({
     request,
   });
 
@@ -37,17 +37,50 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Get the current URL path
+  const path = request.nextUrl.pathname;
+
+  // THIS IS THE KEY FIX - be very careful with this logic
+
+  // Define public paths that don't require authentication
+  const publicPaths = [
+    '/login',
+    '/auth/callback',
+    '/auth/auth-code-error',
+    '/error',
+  ];
+
+  // Check if the current path is in the public paths
+  const isPublicPath = publicPaths.some(
+    (pp) => path === pp || path.startsWith(pp)
+  );
+
+  // Very important - exclude the root path '/' from all checks to break the infinite loop
+  if (path === '/') {
+    // Allow access to home page regardless of auth status
+    return supabaseResponse;
+  }
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/') && // undo later
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !isPublicPath
+    // !request.nextUrl.pathname.startsWith('/') && // undo later
+    // !request.nextUrl.pathname.startsWith('/login') &&
+    // !request.nextUrl.pathname.startsWith('/auth')
   ) {
     // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
+    // const url = request.nextUrl.clone();
     // url.pathname = '/login'; // undo later
-    url.pathname = '/';
-    return NextResponse.redirect(url);
+    // url.pathname = '/';
+    return NextResponse.redirect(new URL('/login', request.url));
+
+    // return NextResponse.redirect(url);
+  }
+
+  // If user is authenticated and trying to access login page
+  // If user is logged in and trying to access login page, redirect to home
+  if (user && path === '/login') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

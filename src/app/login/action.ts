@@ -31,7 +31,7 @@ export async function googleOauthLogin() {
   );
   const supabase = await createClient();
 
-  const callbackUrl = 'http://localhost:3000/auth/callback';
+  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

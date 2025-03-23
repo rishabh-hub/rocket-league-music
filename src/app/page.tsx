@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { HeroForm } from '@/components/form';
 import { Icons } from '@/components/icons';
@@ -9,33 +9,20 @@ import { createClient } from '@/utils/supabase/server';
 const Home = async () => {
   const supabase = await createClient();
 
-  const session = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
 
-  if (!session.data.user)
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-bold">Not Authenticated</h1>
-        <Link className="btn" href="/login">
-          Sign in
-        </Link>
-      </div>
-    );
-
-  const {
-    data: {
-      user: {
-        /* eslint-disable @typescript-eslint/no-unused-vars */ user_metadata,
-      },
-    },
-  } = session;
+  // If not authenticated, redirect to login page
+  if (!data.user) {
+    redirect('/login');
+  }
 
   //TODO: Add user avatar gotten from google's oauth.
   // const { user_name } = user_metadata;
 
   // const userName = user_name ? `@${user_name}` : 'User Name Not Set';
 
-  console.log(session);
-  console.log(` USER SESSION IS ${JSON.stringify(session)}`);
+  console.log(data);
+  console.log(` USER SESSION IS ${JSON.stringify(data)}`);
 
   return (
     <section className="container mt-10 flex flex-col items-center gap-3 text-center md:absolute md:left-1/2 md:top-1/2 md:mt-0 md:-translate-x-1/2 md:-translate-y-1/2">
