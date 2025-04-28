@@ -21,8 +21,8 @@ const Home = async () => {
 
   // const userName = user_name ? `@${user_name}` : 'User Name Not Set';
 
-  console.log(data);
-  console.log(` USER SESSION IS ${JSON.stringify(data)}`);
+  // console.log(data);
+  // console.log(` USER SESSION IS ${JSON.stringify(data)}`);
 
   return (
     <section className="container mt-10 flex flex-col items-center gap-3 text-center md:absolute md:left-1/2 md:top-1/2 md:mt-0 md:-translate-x-1/2 md:-translate-y-1/2">
@@ -47,6 +47,13 @@ const Home = async () => {
         <Button variant="outline" asChild>
           <a href="https://github.com/Skolaczk/next-starter" target="_blank">
             <Icons.github className="mr-2 size-4" /> {m.github()}
+          </a>
+        </Button>
+
+        {/* New Upload Replay Button */}
+        <Button variant="default" asChild>
+          <a href="/upload-replay">
+            <Icons.upload className="mr-2 size-4" /> Upload Replay
           </a>
         </Button>
       </div>
