@@ -1,64 +1,121 @@
-import { redirect } from 'next/navigation';
+// app/page.tsx
+'use client';
 
-import { HeroForm } from '@/components/form';
-import { Icons } from '@/components/icons';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import * as m from '@/paraglide/messages';
-import { createClient } from '@/utils/supabase/server';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { FileUp, BarChart, LogOut, UserCircle, Loader2 } from 'lucide-react';
 
-const Home = async () => {
-  const supabase = await createClient();
+export default function HomePage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data } = await supabase.auth.getUser();
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setLoading(false);
 
-  // If not authenticated, redirect to login page
-  if (!data.user) {
-    redirect('/login');
+      // Redirect to login if not authenticated
+      if (!session) {
+        router.push('/login');
+      }
+    };
+
+    checkUser();
+  }, [router, supabase]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
-  //TODO: Add user avatar gotten from google's oauth.
-  // const { user_name } = user_metadata;
-
-  // const userName = user_name ? `@${user_name}` : 'User Name Not Set';
-
-  // console.log(data);
-  // console.log(` USER SESSION IS ${JSON.stringify(data)}`);
+  if (!user) {
+    return null; // Will redirect to login via useEffect
+  }
 
   return (
-    <section className="container mt-10 flex flex-col items-center gap-3 text-center md:absolute md:left-1/2 md:top-1/2 md:mt-0 md:-translate-x-1/2 md:-translate-y-1/2">
-      <h1 className="mb-1 font-mono text-3xl font-extrabold leading-tight tracking-tighter md:text-4xl">
-        {m.nextjs_starter_template_headline()}
-      </h1>
-      <p className="text-muted-foreground max-w-2xl">
-        {m.nextjs_starter_template_description()}
-      </p>
-      <div className="mt-1">
-        <HeroForm />
+    <div className="container py-8 px-4">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Rocket League Replay Analyzer</h1>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            <span className="inline-flex items-center">
+              <UserCircle className="mr-2 h-4 w-4" />
+              {user.email}
+            </span>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+          </Button>
+        </div>
       </div>
-      <div className="mt-2 flex gap-4">
-        <Button asChild>
-          <a
-            href="https://github.com/Skolaczk/next-starter/blob/main/README.md#getting-started"
-            target="_blank"
-          >
-            {m.get_started()}
-          </a>
-        </Button>
-        <Button variant="outline" asChild>
-          <a href="https://github.com/Skolaczk/next-starter" target="_blank">
-            <Icons.github className="mr-2 size-4" /> {m.github()}
-          </a>
-        </Button>
 
-        {/* New Upload Replay Button */}
-        <Button variant="default" asChild>
-          <a href="/upload-replay">
-            <Icons.upload className="mr-2 size-4" /> Upload Replay
-          </a>
-        </Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Replay</CardTitle>
+            <CardDescription>
+              Upload a new Rocket League replay file for analysis
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              Upload your .replay files to see detailed stats, boost usage,
+              positioning data and more from your games.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() => router.push('/upload-replay')}
+              className="w-full"
+            >
+              <FileUp className="mr-2 h-4 w-4" /> Upload Replay
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>View Your Replays</CardTitle>
+            <CardDescription>
+              View and analyze your previously uploaded replays
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              Browse your replay collection, check processing status, and view
+              detailed analysis of your gameplay.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => router.push('/replays')} className="w-full">
+              <BarChart className="mr-2 h-4 w-4" /> View Replays
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
-    </section>
+    </div>
   );
-};
-
-export default Home;
+}

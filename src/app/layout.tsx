@@ -56,8 +56,9 @@ const RootLayout = ({ children }: PropsWithChildren) => {
           <ThemeProvider attribute="class">
             <Navbar />
             {children}
-            <ThemeSwitcher className="absolute bottom-5 right-5 z-10" />
-            <Footer />
+            <ThemeSwitcher className="fixed bottom-5 right-5 z-10" />
+            {/* <Footer /> */}
+            {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
             <Toaster />
           </ThemeProvider>
         </body>

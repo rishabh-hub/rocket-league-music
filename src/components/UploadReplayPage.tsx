@@ -8,6 +8,8 @@ import {
   FileUp,
   Upload,
   X,
+  Loader2,
+  Info,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -21,6 +23,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 
 interface UploadResponse {
   message: string;
@@ -28,6 +38,8 @@ interface UploadResponse {
   fileSize: number;
   path: string | null;
   url: string | null;
+  replayId?: string; // New field for the DB record ID
+  status?: string; // New field for the processing status
 }
 
 const UploadReplayPage = () => {
@@ -36,9 +48,11 @@ const UploadReplayPage = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [visibility, setVisibility] = useState<string>('public');
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -91,17 +105,34 @@ const UploadReplayPage = () => {
 
     setIsUploading(true);
     setError('');
+    setUploadProgress(0);
+
+    // Simulate progress for better UX (actual progress is not available from fetch API)
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        const newProgress = prev + 5;
+        if (newProgress >= 90) {
+          clearInterval(progressInterval);
+          return 90; // Hold at 90% until complete
+        }
+        return newProgress;
+      });
+    }, 300);
 
     try {
       // Create FormData for the file
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('visibility', visibility); // Add visibility parameter for ballchasing.com
 
-      // Replace with your actual API endpoint for file upload
+      // Upload to our API endpoint (which now handles both Supabase and ballchasing)
       const response = await fetch('/api/upload-replay', {
         method: 'POST',
         body: formData,
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -116,7 +147,13 @@ const UploadReplayPage = () => {
       setUploadSuccess(true);
       setUploadedFileUrl(responseData.url);
 
-      // No automatic redirect - user will use the "Go to Home" button instead
+      // After a short delay to show success, redirect to the replay details page
+      // to show processing status
+      if (responseData.replayId) {
+        setTimeout(() => {
+          router.push(`/replays/${responseData.replayId}`);
+        }, 1500);
+      }
     } catch (err: unknown) {
       // Type guard for Error objects
       if (err instanceof Error) {
@@ -124,6 +161,7 @@ const UploadReplayPage = () => {
       } else {
         setError('Error uploading file');
       }
+      setUploadProgress(0);
     } finally {
       setIsUploading(false);
     }
@@ -144,7 +182,8 @@ const UploadReplayPage = () => {
             Upload Replay File
           </CardTitle>
           <CardDescription>
-            Upload your Rocket League replay file (.replay) to analyze
+            Upload your Rocket League replay file for analysis on
+            ballchasing.com
           </CardDescription>
         </CardHeader>
 
@@ -158,50 +197,19 @@ const UploadReplayPage = () => {
           )}
 
           {uploadSuccess && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <CheckCircle className="size-4 text-green-500" />
-              <AlertTitle className="text-green-500">Success</AlertTitle>
+            <Alert className="mb-4 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+              <CheckCircle className="size-4 text-green-500 dark:text-green-400" />
+              <AlertTitle className="text-green-500 dark:text-green-400">
+                Success
+              </AlertTitle>
               <AlertDescription>
-                <p className="mb-2 font-semibold text-gray-800">
+                <p className="mb-2 font-semibold">
                   Your replay file was uploaded successfully!
                 </p>
-                {uploadedFileUrl && (
-                  <div className="mt-2 text-sm">
-                    <div className="font-medium text-gray-900">File URL:</div>
-                    <div className="mt-1 flex items-center">
-                      <a
-                        href={uploadedFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center break-all pr-2 text-xs text-blue-600 underline hover:text-blue-800"
-                      >
-                        {uploadedFileUrl}
-                        <ExternalLink className="ml-1 inline-block size-3 shrink-0" />
-                      </a>
-                    </div>
-                    <div className="mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={'h-7 text-xs transition-all duration-300'}
-                        onClick={() => {
-                          navigator.clipboard.writeText(uploadedFileUrl || '');
-                          setCopySuccess(true);
-                          setTimeout(() => setCopySuccess(false), 2000);
-                        }}
-                      >
-                        {copySuccess ? (
-                          <>
-                            <CheckCircle className="mr-1 size-3.5" />
-                            Copied!
-                          </>
-                        ) : (
-                          'Copy URL'
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <p className="text-sm">Redirecting to processing page...</p>
+                <div className="mt-2">
+                  <Progress value={100} className="h-1" />
+                </div>
               </AlertDescription>
             </Alert>
           )}
@@ -217,7 +225,7 @@ const UploadReplayPage = () => {
                   variant="ghost"
                   size="sm"
                   onClick={removeFile}
-                  className="text-gray-500 hover:text-red-500"
+                  className="text-muted-foreground hover:text-destructive"
                 >
                   <X className="size-4" />
                 </Button>
@@ -225,14 +233,11 @@ const UploadReplayPage = () => {
             </div>
           ) : (
             !uploadSuccess && (
-              // This is just the part that needs to be fixed in UploadReplayPage.tsx
-              // Replace the existing drop zone div with this accessible version
-
               <div
                 className={`cursor-pointer rounded-md border-2 border-dashed p-8 text-center transition-colors ${
                   isDragging
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-blue-400'
+                    ? 'border-primary bg-muted/50'
+                    : 'border-muted hover:border-primary/50'
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -257,14 +262,14 @@ const UploadReplayPage = () => {
                 tabIndex={0}
                 aria-label="Upload replay file"
               >
-                <Upload className="mx-auto mb-3 size-10 text-gray-400" />
-                <p className="mb-1 text-sm text-gray-600">
-                  <span className="font-medium text-blue-600">
+                <Upload className="mx-auto mb-3 size-10 text-muted-foreground" />
+                <p className="mb-1 text-sm">
+                  <span className="font-medium text-primary">
                     Click to upload
                   </span>{' '}
                   or drag and drop
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Only Rocket League replay files (.replay) are accepted (max
                   10MB)
                 </p>
@@ -277,6 +282,64 @@ const UploadReplayPage = () => {
                 />
               </div>
             )
+          )}
+
+          {/* Visibility option for ballchasing.com */}
+          {!uploadSuccess && (
+            <div className="mt-4">
+              <label className="mb-2 block text-sm font-medium">
+                Replay Visibility on ballchasing.com
+              </label>
+              <Select
+                value={visibility}
+                onValueChange={setVisibility}
+                disabled={isUploading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">
+                    Public (Anyone can find and view)
+                  </SelectItem>
+                  <SelectItem value="unlisted">
+                    Unlisted (Only accessible with link)
+                  </SelectItem>
+                  <SelectItem value="private">
+                    Private (Only you can view)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Processing info */}
+          {!uploadSuccess && (
+            <Alert className="mt-4 bg-muted">
+              <Info className="size-4" />
+              <AlertTitle>Processing Information</AlertTitle>
+              <AlertDescription>
+                <p className="text-xs text-muted-foreground mt-1">
+                  After uploading, your replay will be sent to ballchasing.com
+                  for processing. This may take 1-2 minutes depending on the
+                  file size.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Upload progress */}
+          {isUploading && (
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <span>Uploading replay file...</span>
+                </div>
+                <span>{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} />
+            </div>
           )}
         </CardContent>
 
@@ -298,7 +361,11 @@ const UploadReplayPage = () => {
             <Button
               variant="default"
               className="ml-auto"
-              onClick={() => router.push('/')}
+              onClick={() => {
+                if (uploadedFileUrl) {
+                  router.push('/');
+                }
+              }}
             >
               Go to Home
             </Button>
