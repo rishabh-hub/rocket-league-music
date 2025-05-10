@@ -7,6 +7,7 @@ import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import FormData from 'form-data';
+import { redirect } from 'next/navigation';
 
 // Increase max duration for handling larger files and external API calls
 export const maxDuration = 60;
@@ -146,10 +147,7 @@ export async function POST(request: NextRequest) {
 
       let ballchasingId;
 
-      if (
-        ballchasingResponse.status === 201 ||
-        ballchasingResponse.status === 409
-      ) {
+      if (ballchasingResponse.status === 201) {
         // Successful upload or duplicate replay
         ballchasingId = ballchasingResponse.data.id;
 
@@ -162,6 +160,9 @@ export async function POST(request: NextRequest) {
             status: 'processing',
           })
           .eq('id', replayRecord.id);
+      } else if (ballchasingResponse.status === 409) {
+        ballchasingId = ballchasingResponse.data.id;
+        redirect(`/replays/${ballchasingId}`);
       } else {
         throw new Error(
           `Unexpected response from ballchasing.com: ${ballchasingResponse.status}`

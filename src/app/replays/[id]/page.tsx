@@ -59,7 +59,17 @@ export default function ReplayDetailsPage() {
             router.push('/login');
             return;
           }
-
+          if (response.status === 409) {
+            // Replay exists
+            toast({
+              variant: 'default',
+              title: 'Replay already exists',
+              description: 'This replay file has already been uploaded',
+            });
+            router.push('/replays');
+            return;
+          }
+          console.log(`RESPONSE NOT OK ${JSON.stringify(response)}`);
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch replay data');
         }
