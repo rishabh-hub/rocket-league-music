@@ -4,7 +4,6 @@ import { ChangeEvent, DragEvent, useCallback, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle,
-  ExternalLink,
   FileUp,
   Upload,
   X,
@@ -51,7 +50,7 @@ const UploadReplayPage = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  // const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [visibility, setVisibility] = useState<string>('public');
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {

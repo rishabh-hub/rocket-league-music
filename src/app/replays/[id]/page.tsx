@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+// import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/components/ui/use-toast'; // Changed from sonner to shadcn toast
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ interface ReplayData {
 export default function ReplayDetailsPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const supabase = createClient();
+  //   const supabase = createClient();
   const { toast } = useToast(); // Using shadcn toast hook
 
   const [replay, setReplay] = useState<ReplayData | null>(null);
@@ -42,8 +42,6 @@ export default function ReplayDetailsPage() {
 
   // Poll for updates while processing
   useEffect(() => {
-    let pollingInterval: NodeJS.Timeout;
-
     const fetchReplayData = async () => {
       try {
         const response = await fetch(`/api/replay/${id}`);
@@ -125,7 +123,7 @@ export default function ReplayDetailsPage() {
     fetchReplayData();
 
     // Setup polling
-    pollingInterval = setInterval(async () => {
+    const pollingInterval = setInterval(async () => {
       const shouldStopPolling = await fetchReplayData();
       if (shouldStopPolling) {
         clearInterval(pollingInterval);

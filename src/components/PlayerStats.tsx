@@ -116,35 +116,6 @@ interface PlayerStatsProps {
 
 const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
   const { theme } = useTheme();
-
-  if (!replayData || !replayData.metrics) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-center">
-          <p>No replay metrics available</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const metrics = replayData.metrics;
-  const blueTeam = metrics.teams.blue;
-  const orangeTeam = metrics.teams.orange;
-
-  // Combine all players for chart data
-  const allPlayers = [
-    ...blueTeam.players.map((player) => ({
-      ...player,
-      team: 'blue',
-      teamName: blueTeam.name,
-    })),
-    ...orangeTeam.players.map((player) => ({
-      ...player,
-      team: 'orange',
-      teamName: orangeTeam.name,
-    })),
-  ];
-
   // Get stat labels and values based on statType
   const getStatConfig = () => {
     switch (statType) {
@@ -234,11 +205,40 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
         };
     }
   };
-
   const statConfig = getStatConfig();
   const [selectedStat, setSelectedStat] = React.useState<string>(
     statConfig.stats[0].id
   );
+
+  if (!replayData || !replayData.metrics) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-center">
+          <p>No replay metrics available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const metrics = replayData.metrics;
+  const blueTeam = metrics.teams.blue;
+  const orangeTeam = metrics.teams.orange;
+
+  // Combine all players for chart data
+  const allPlayers = [
+    ...blueTeam.players.map((player) => ({
+      ...player,
+      team: 'blue',
+      teamName: blueTeam.name,
+    })),
+    ...orangeTeam.players.map((player) => ({
+      ...player,
+      team: 'orange',
+      teamName: orangeTeam.name,
+    })),
+  ];
+
+  //   const statConfig = getStatConfig();
 
   // Get the value from a nested path
   const getValueByPath = (obj: any, path: string) => {

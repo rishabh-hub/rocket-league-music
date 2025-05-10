@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
  * GET handler for fetching replay details
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
+  // { params }: { params: { id: string } }
 ) {
   try {
     // The simplest solution - hardcode the path and use request.url instead
