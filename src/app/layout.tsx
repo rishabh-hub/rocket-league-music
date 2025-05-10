@@ -3,7 +3,7 @@ import '@/styles/globals.css';
 import { PropsWithChildren } from 'react';
 import { LanguageProvider } from '@inlang/paraglide-next';
 import type { Metadata } from 'next';
-
+import { Analytics } from '@vercel/analytics/next';
 import { Navbar } from '@/components/navbar/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -55,6 +55,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
           <ThemeProvider attribute="class">
             <Navbar />
             {children}
+            <Analytics />
             <ThemeSwitcher className="fixed bottom-5 right-5 z-10" />
             {/* <Footer /> */}
             {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
