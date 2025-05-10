@@ -5,6 +5,7 @@ import { LanguageProvider } from '@inlang/paraglide-next';
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { Navbar } from '@/components/navbar/navbar';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Toaster } from '@/components/ui/toaster';
@@ -56,6 +57,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
             <Navbar />
             {children}
             <Analytics />
+            <SpeedInsights />
             <ThemeSwitcher className="fixed bottom-5 right-5 z-10" />
             {/* <Footer /> */}
             {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
