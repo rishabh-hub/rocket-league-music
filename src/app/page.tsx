@@ -59,17 +59,6 @@ export default function HomePage() {
     <div className="container py-8 px-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Rocket League Replay Analyzer</h1>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            <span className="inline-flex items-center">
-              <UserCircle className="mr-2 h-4 w-4" />
-              {user.email}
-            </span>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-          </Button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
