@@ -40,6 +40,7 @@
 ## 🚀 Deployment
 
 Easily deploy your Next.js app with <a href="https://vercel.com/">Vercel</a> by clicking the button below:
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rishabh-hub/rocket-league-music)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Skolaczk/next-starter)
