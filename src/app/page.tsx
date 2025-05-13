@@ -4,16 +4,17 @@
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { CardTitle } from '@/components/ui/card';
+import { FileUp, BarChart, Loader2 } from 'lucide-react';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { FileUp, BarChart, LogOut, UserCircle, Loader2 } from 'lucide-react';
+  CardCurtain,
+  CardCurtainReveal,
+  CardCurtainRevealBody,
+  CardCurtainRevealDescription,
+  CardCurtainRevealFooter,
+  CardCurtainRevealTitle,
+} from '@/components/ui/card-curtain-reveal';
+import { CurtainRevealButton } from '@/components/ui/CurtainRevealButton';
 
 export default function HomePage() {
   const router = useRouter();
@@ -62,48 +63,58 @@ export default function HomePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Replay</CardTitle>
-            <CardDescription>
-              Upload a new Rocket League replay file for analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Upload your .replay files to see detailed stats, boost usage,
-              positioning data and more from your games.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={() => router.push('/upload-replay')}
-              className="w-full"
-            >
-              <FileUp className="mr-2 h-4 w-4" /> Upload Replay
-            </Button>
-          </CardFooter>
-        </Card>
+        <CardCurtainReveal className="h-[760px] w-120 border border-zinc-100 bg-zinc-950 text-zinc-50 shadow">
+          <CardCurtainRevealBody className="">
+            <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight">
+              <CardTitle>Upload Replay</CardTitle>
+            </CardCurtainRevealTitle>
+            <CardCurtainRevealDescription className="my-4">
+              Upload your .replay files to see <br /> detailed stats, boost
+              usage, positioning data and more from your games.
+            </CardCurtainRevealDescription>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>View Your Replays</CardTitle>
-            <CardDescription>
-              View and analyze your previously uploaded replays
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Browse your replay collection, check processing status, and view
-              detailed analysis of your gameplay.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={() => router.push('/replays')} className="w-full">
+            <CurtainRevealButton onClick={() => router.push('/upload-replay')}>
+              <FileUp className="mr-2 h-4 w-4" /> Upload Replay
+            </CurtainRevealButton>
+            <CardCurtain className=" bg-zinc-50" />
+          </CardCurtainRevealBody>
+          <CardCurtainRevealFooter className="mt-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              width="100%"
+              height="100%"
+              alt="Tokyo street"
+              className=""
+              src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=2388&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            />
+          </CardCurtainRevealFooter>
+        </CardCurtainReveal>
+
+        <CardCurtainReveal className="h-[760px] w-120 border border-zinc-100 bg-zinc-950 text-zinc-50 shadow">
+          <CardCurtainRevealBody className="">
+            <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight">
+              <CardTitle>View Your Replays</CardTitle>
+            </CardCurtainRevealTitle>
+            <CardCurtainRevealDescription className=" my-4">
+              View and analyze <br /> your previously uploaded replays
+            </CardCurtainRevealDescription>
+            <CurtainRevealButton onClick={() => router.push('/replays')}>
               <BarChart className="mr-2 h-4 w-4" /> View Replays
-            </Button>
-          </CardFooter>
-        </Card>
+            </CurtainRevealButton>
+            <CardCurtain className=" bg-zinc-50" />
+          </CardCurtainRevealBody>
+
+          <CardCurtainRevealFooter className="mt-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              width="100%"
+              height="100%"
+              alt="Tokyo street"
+              className=""
+              src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=2388&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            />
+          </CardCurtainRevealFooter>
+        </CardCurtainReveal>
       </div>
     </div>
   );

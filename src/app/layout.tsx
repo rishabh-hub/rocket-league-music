@@ -17,10 +17,11 @@ import { languageTag } from '@/paraglide/runtime.js';
 export const generateMetadata = (): Metadata => ({
   metadataBase: new URL(siteConfig.url()),
   title: {
-    default: siteConfig.title(),
+    default: 'Replay Rythms',
     template: `%s | ${siteConfig.title()}`,
   },
-  description: siteConfig.description(),
+  description:
+    'Analyze your Rocket League replays and get song recommendations.',
   keywords: siteConfig.keywords(),
   robots: { index: true, follow: true },
   icons: {
