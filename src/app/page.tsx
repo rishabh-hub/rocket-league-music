@@ -99,9 +99,10 @@ export default function HomePage() {
               <Image
                 fill
                 alt="porsche"
-                src="/images/porsche.png"
+                src="/images/porsche.webp"
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                quality={75}
                 priority
               />
               {/* Gradient overlay that adapts to theme */}
@@ -159,6 +160,7 @@ export default function HomePage() {
                 src="/images/dashboard.png"
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                quality={75}
                 priority
               />
               {/* Gradient overlay that adapts to theme */}
