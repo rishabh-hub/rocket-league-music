@@ -13,6 +13,7 @@ import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import { languageTag } from '@/paraglide/runtime.js';
+import ResumeTracker from '@/components/ResumeTracker';
 
 export const generateMetadata = (): Metadata => ({
   metadataBase: new URL(siteConfig.url()),
@@ -56,6 +57,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
         <body className={cn('min-h-screen font-sans', fonts)}>
           <ThemeProvider attribute="class">
             <Navbar />
+            <ResumeTracker />
             {children}
             <Analytics />
             <SpeedInsights />

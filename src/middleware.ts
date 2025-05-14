@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { updateSession } from './utils/supabase/updateSession';
 
@@ -33,7 +33,43 @@ export async function middleware(request: NextRequest) {
   //   return NextResponse.redirect(new URL('/', request.url));
   // }
   // return response;
-  return await updateSession(request);
+  // Check if the request has the resume query parameter
+  const { searchParams } = request.nextUrl;
+  const isFromResume = searchParams.get('source') === 'resume';
+
+  // Create response by first running the normal session update
+  const response = await updateSession(request);
+  // If the visitor came from the resume, set a cookie to track this
+  if (isFromResume && !request.cookies.has('from_resume')) {
+    // Set a cookie to remember this user came from resume
+    response.cookies.set('from_resume', 'true', {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+      sameSite: 'lax',
+    });
+
+    // Collect basic metadata (without user email yet)
+    const metadata = {
+      ip: request.headers.get('x-forwarded-for') || 'Unknown',
+      userAgent: request.headers.get('user-agent') || 'Unknown',
+      referrer: request.headers.get('referer') || 'Direct',
+      path: request.nextUrl.pathname,
+      timestamp: new Date().toISOString(),
+      loggedIn: false, // Will be updated later if they log in
+      email: null,
+    };
+
+    // Store metadata in a cookie for later use
+    // We need to serialize it as cookies have size limits
+    response.cookies.set('resume_visitor_data', JSON.stringify(metadata), {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+      sameSite: 'lax',
+    });
+  }
+
+  return response;
+  // return await updateSession(request);
 }
 
 export const config = {
