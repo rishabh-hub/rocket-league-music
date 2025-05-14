@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-// import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/components/ui/use-toast'; // Changed from sonner to shadcn toast
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -14,11 +13,15 @@ import {
   AlertTriangle,
   ChevronRight,
   Loader2,
+  Share2,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ReplayStats from '@/components/ReplayStats';
 import PlayerStats from '@/components/PlayerStats';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { motion } from 'motion/react';
+import VisibilityToggle from '@/components/VisibilityToggle';
+import { Badge } from '@/components/ui/badge';
 
 interface ReplayData {
   id: string;
@@ -39,6 +42,7 @@ export default function ReplayDetailsPage() {
   const [status, setStatus] = useState<string>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const [isShowcase, setIsShowcase] = useState<boolean>(false);
 
   // Poll for updates while processing
   useEffect(() => {
@@ -55,6 +59,16 @@ export default function ReplayDetailsPage() {
               description: 'Please login to view replay details',
             });
             router.push('/login');
+            return;
+          }
+          if (response.status === 403) {
+            // User doesn't have access to this replay
+            toast({
+              variant: 'destructive',
+              title: 'Access Denied',
+              description: 'You do not have permission to view this replay',
+            });
+            router.push('/replays');
             return;
           }
           if (response.status === 409) {
@@ -75,6 +89,11 @@ export default function ReplayDetailsPage() {
         const data = await response.json();
         setStatus(data.status);
         setReplay(data.replay);
+
+        // Check if this is a showcase replay (public visibility)
+        if (data.replay && data.replay.visibility === 'public') {
+          setIsShowcase(true);
+        }
 
         if (data.error) {
           setErrorMessage(data.error);
@@ -153,9 +172,10 @@ export default function ReplayDetailsPage() {
         <Button
           variant="ghost"
           className="mb-8"
-          onClick={() => router.push('/replays')}
+          onClick={() => router.push(isShowcase ? '/showcase' : '/replays')}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Replays
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {isShowcase ? 'Back to Showcase' : 'Back to Replays'}
         </Button>
 
         <Card className="mx-auto max-w-md">
@@ -167,8 +187,10 @@ export default function ReplayDetailsPage() {
             <p className="text-destructive mb-6">
               {errorMessage || 'An unknown error occurred'}
             </p>
-            <Button onClick={() => router.push('/replays')}>
-              Back to Replays
+            <Button
+              onClick={() => router.push(isShowcase ? '/showcase' : '/replays')}
+            >
+              {isShowcase ? 'Back to Showcase' : 'Back to Replays'}
             </Button>
           </CardContent>
         </Card>
@@ -202,9 +224,9 @@ export default function ReplayDetailsPage() {
         <Button
           variant="ghost"
           className="mb-8"
-          onClick={() => router.push('/replays')}
+          onClick={() => router.push(isShowcase ? '/showcase' : '/replays')}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Replays
+          {isShowcase ? 'Back to Showcase' : 'Back to Replays'}
         </Button>
 
         <Card className="mx-auto max-w-md">
@@ -245,9 +267,10 @@ export default function ReplayDetailsPage() {
         <Button
           variant="ghost"
           className="mb-8"
-          onClick={() => router.push('/replays')}
+          onClick={() => router.push(isShowcase ? '/showcase' : '/replays')}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Replays
+          <ArrowLeft className="mr-2 h-4 w-4" />{' '}
+          {isShowcase ? 'Back to Showcase' : 'Back to Replays'}
         </Button>
 
         <Card className="mx-auto max-w-md">
@@ -289,20 +312,37 @@ export default function ReplayDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <motion.div
+      className="container mx-auto py-8 px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="mb-8">
-        <Button variant="ghost" onClick={() => router.push('/replays')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Replays
+        <Button
+          variant="ghost"
+          onClick={() => router.push(isShowcase ? '/showcase' : '/replays')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />{' '}
+          {isShowcase ? 'Back to Showcase' : 'Back to Replays'}
         </Button>
       </div>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">
-          {replay.metrics?.title || pageTitle}
-        </h1>
+        <div className="flex justify-between items-start">
+          <h1 className="text-3xl font-bold">
+            {replay.metrics?.title || pageTitle}
+          </h1>
 
-        {replay.ballchasingId && (
-          <div className="mt-2">
+          {replay.visibility === 'public' && (
+            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+              Public Showcase
+            </Badge>
+          )}
+        </div>
+
+        <div className="mt-2 flex items-center gap-4">
+          {replay.ballchasingId && (
             <Button variant="link" className="h-auto p-0" asChild>
               <a
                 href={`https://ballchasing.com/replay/${replay.ballchasingId}`}
@@ -314,8 +354,45 @@ export default function ReplayDetailsPage() {
                 <ChevronRight className="ml-1 h-3 w-3" />
               </a>
             </Button>
-          </div>
-        )}
+          )}
+
+          {/* Share button for showcase replays */}
+          {replay.visibility === 'public' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url);
+                toast({
+                  title: 'Link copied!',
+                  description: 'Share this replay with your friends',
+                });
+              }}
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+          )}
+          {!isShowcase && (
+            <div className="ml-auto">
+              <VisibilityToggle
+                replayId={replay.id}
+                initialVisibility={replay.visibility}
+                onVisibilityChange={(newVisibility) => {
+                  if (replay) {
+                    setReplay({
+                      ...replay,
+                      visibility: newVisibility,
+                    });
+                    setIsShowcase(newVisibility === 'public');
+                  }
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <Tabs
@@ -346,6 +423,6 @@ export default function ReplayDetailsPage() {
           <PlayerStats replayData={replay} statType="positioning" />
         </TabsContent>
       </Tabs>
-    </div>
+    </motion.div>
   );
 }

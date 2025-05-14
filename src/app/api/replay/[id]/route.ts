@@ -24,13 +24,16 @@ export async function GET(
     const supabase = await createClient();
 
     // Check authentication
+    // const {
+    //   data: { user },
+    // } = await supabase.auth.getUser();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+    // if (!user) {
+    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    // }
 
     // Fetch the replay record
     const { data: replay, error } = await supabase
@@ -47,10 +50,23 @@ export async function GET(
       );
     }
 
-    // Check if this user has permission to access this replay
-    if (replay.user_id !== user.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+    // Check authorization - only allow access if:
+    // 1. The replay is public, OR
+    // 2. The user is authenticated and owns the replay
+    if (
+      replay.visibility !== 'public' &&
+      (!session || replay.user_id !== session.user.id)
+    ) {
+      return NextResponse.json(
+        { error: 'Unauthorized access to replay' },
+        { status: 403 }
+      );
     }
+
+    // Check if this user has permission to access this replay
+    // if (replay.user_id !== user.id) {
+    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+    // }
 
     // Return based on status
     switch (replay.status) {

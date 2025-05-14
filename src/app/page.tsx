@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowUpRight } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import {
   CardCurtain,
   CardCurtainReveal,
@@ -16,6 +17,9 @@ import {
 } from '@/components/ui/card-curtain-reveal';
 import { CurtainRevealButton } from '@/components/ui/CurtainRevealButton';
 import Image from 'next/image';
+import { motion } from 'motion/react';
+import { Button } from '@/components/ui/button';
+import ShowcaseButton from '@/components/ShowcaseButton';
 
 export default function HomePage() {
   const router = useRouter();
@@ -59,35 +63,33 @@ export default function HomePage() {
 
   return (
     <div className="container max-w-5xl py-8 px-4">
-      <div className="flex flex-col items-center mb-12 text-center">
-        <div className="relative w-16 h-16 mb-4">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full opacity-70 blur-md"></div>
-          <div className="relative flex items-center justify-center w-full h-full bg-zinc-900 rounded-full border border-zinc-700">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-8 h-8 text-zinc-100"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="m8 12 4 4 4-4M12 8v8" />
-            </svg>
-          </div>
-        </div>
+      <motion.div
+        className="flex flex-col items-center text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
         <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-2">
           Rocket League Replay Analyzer
         </h1>
-        <p className="dark:text-zinc-400 text-zinc-600 max-w-md">
+
+        <motion.p className="dark:text-zinc-400 text-zinc-600 max-w-md">
           Elevate your game with detailed insights and analytics from your match
           replays
-        </p>
-      </div>
+        </motion.p>
+        <ShowcaseButton />
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <motion.p
+        className="text-center text-muted-foreground"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+      >
+        See what others are analyzing
+      </motion.p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         <div
           onClick={() => router.push('/upload-replay')}
           className="cursor-pointer transition-transform hover:scale-[1.01]"
