@@ -42,7 +42,7 @@ export const Navbar = async () => {
     <header className="w-full border-b">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="font-mono text-lg font-bold">
-          {m.app_name()}
+          Replay Rythms
         </Link>
         <div className="flex items-center gap-2">
           {user ? (

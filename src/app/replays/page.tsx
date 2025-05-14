@@ -178,7 +178,7 @@ export default function ReplaysPage() {
               <p className="text-muted-foreground mb-4">
                 Upload your first Rocket League replay file to get started
               </p>
-              <Button onClick={() => router.push('/upload')}>
+              <Button onClick={() => router.push('/upload-replay')}>
                 Upload Replay
               </Button>
             </div>

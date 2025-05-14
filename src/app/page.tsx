@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { CardTitle } from '@/components/ui/card';
-import { FileUp, BarChart, Loader2 } from 'lucide-react';
+import { Loader2, ArrowUpRight } from 'lucide-react';
 import {
   CardCurtain,
   CardCurtainReveal,
@@ -15,6 +15,7 @@ import {
   CardCurtainRevealTitle,
 } from '@/components/ui/card-curtain-reveal';
 import { CurtainRevealButton } from '@/components/ui/CurtainRevealButton';
+import Image from 'next/image';
 
 export default function HomePage() {
   const router = useRouter();
@@ -57,64 +58,149 @@ export default function HomePage() {
   }
 
   return (
-    <div className="container py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Rocket League Replay Analyzer</h1>
+    <div className="container max-w-5xl py-8 px-4">
+      <div className="flex flex-col items-center mb-12 text-center">
+        <div className="relative w-16 h-16 mb-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full opacity-70 blur-md"></div>
+          <div className="relative flex items-center justify-center w-full h-full bg-zinc-900 rounded-full border border-zinc-700">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-8 h-8 text-zinc-100"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="m8 12 4 4 4-4M12 8v8" />
+            </svg>
+          </div>
+        </div>
+        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-2">
+          Rocket League Replay Analyzer
+        </h1>
+        <p className="dark:text-zinc-400 text-zinc-600 max-w-md">
+          Elevate your game with detailed insights and analytics from your match
+          replays
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CardCurtainReveal className="h-[760px] w-120 border border-zinc-100 bg-zinc-950 text-zinc-50 shadow">
-          <CardCurtainRevealBody className="">
-            <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight">
-              <CardTitle>Upload Replay</CardTitle>
-            </CardCurtainRevealTitle>
-            <CardCurtainRevealDescription className="my-4">
-              Upload your .replay files to see <br /> detailed stats, boost
-              usage, positioning data and more from your games.
-            </CardCurtainRevealDescription>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div
+          onClick={() => router.push('/upload-replay')}
+          className="cursor-pointer transition-transform hover:scale-[1.01]"
+        >
+          {/* Card with background image */}
+          <div className="relative">
+            {/* Background image positioned absolute to fill the entire card */}
+            <div className="absolute inset-0 z-0">
+              <Image
+                fill
+                alt="porsche"
+                src="/images/porsche.png"
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+              {/* Gradient overlay that adapts to theme */}
+              <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>
+            </div>
 
-            <CurtainRevealButton onClick={() => router.push('/upload-replay')}>
-              <FileUp className="mr-2 h-4 w-4" /> Upload Replay
-            </CurtainRevealButton>
-            <CardCurtain className=" bg-zinc-50" />
-          </CardCurtainRevealBody>
-          <CardCurtainRevealFooter className="mt-auto">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              width="100%"
-              height="100%"
-              alt="Tokyo street"
-              className=""
-              src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=2388&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            />
-          </CardCurtainRevealFooter>
-        </CardCurtainReveal>
+            {/* CardCurtainReveal positioned relative on top of the background */}
+            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-zinc-100 dark:border-zinc-800 bg-transparent dark:text-zinc-50 text-zinc-900 shadow dark:hover:text-zinc-50 hover:text-zinc-900">
+              <CardCurtainRevealBody className="p-8">
+                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 dark:text-zinc-50 text-zinc-700">
+                  <CardTitle>Upload Replay</CardTitle>
+                </CardCurtainRevealTitle>
+                <CardCurtainRevealDescription className="mb-8">
+                  <p className="text-base leading-relaxed text-zinc-300">
+                    Upload your .replay files and discover detailed insights
+                    about your gameplay. Analyze boost usage patterns,
+                    positioning data, and performance metrics to elevate your
+                    skills and strategy. Identify areas for improvement with our
+                    comprehensive dashboard.
+                  </p>
+                </CardCurtainRevealDescription>
 
-        <CardCurtainReveal className="h-[760px] w-120 border border-zinc-100 bg-zinc-950 text-zinc-50 shadow">
-          <CardCurtainRevealBody className="">
-            <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight">
-              <CardTitle>View Your Replays</CardTitle>
-            </CardCurtainRevealTitle>
-            <CardCurtainRevealDescription className=" my-4">
-              View and analyze <br /> your previously uploaded replays
-            </CardCurtainRevealDescription>
-            <CurtainRevealButton onClick={() => router.push('/replays')}>
-              <BarChart className="mr-2 h-4 w-4" /> View Replays
-            </CurtainRevealButton>
-            <CardCurtain className=" bg-zinc-50" />
-          </CardCurtainRevealBody>
+                <CurtainRevealButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the outer div's onClick from firing
+                    router.push('/upload-replay');
+                  }}
+                  variant={'secondary'}
+                  size={'icon'}
+                  className="aspect-square rounded-full"
+                >
+                  <ArrowUpRight />
+                </CurtainRevealButton>
+                <CardCurtain className="dark:bg-zinc-50 bg-white" />
+              </CardCurtainRevealBody>
+              {/* No image in the footer since it's already in the background */}
+              <CardCurtainRevealFooter className="mt-auto">
+                {/* Empty footer to maintain the layout */}
+              </CardCurtainRevealFooter>
+            </CardCurtainReveal>
+          </div>
+        </div>
 
-          <CardCurtainRevealFooter className="mt-auto">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              width="100%"
-              height="100%"
-              alt="Tokyo street"
-              className=""
-              src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=2388&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            />
-          </CardCurtainRevealFooter>
-        </CardCurtainReveal>
+        <div
+          onClick={() => router.push('/replays')}
+          className="cursor-pointer transition-transform hover:scale-[1.01]"
+        >
+          {/* Card with background image */}
+          <div className="relative">
+            {/* Background image positioned absolute to fill the entire card */}
+            <div className="absolute inset-0 z-0">
+              <Image
+                fill
+                alt="dashboard"
+                src="/images/dashboard.png"
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+              {/* Gradient overlay that adapts to theme */}
+              <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>
+            </div>
+
+            {/* CardCurtainReveal positioned relative on top of the background */}
+            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-zinc-100 dark:border-zinc-800 bg-transparent dark:text-zinc-50 text-zinc-900 shadow dark:hover:text-zinc-50 hover:text-zinc-900">
+              <CardCurtainRevealBody className="p-8">
+                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 dark:text-zinc-50 text-zinc-700">
+                  <CardTitle>View Your Replays</CardTitle>
+                </CardCurtainRevealTitle>
+                <CardCurtainRevealDescription className="mb-8">
+                  <p className="text-base leading-relaxed text-zinc-300">
+                    Browse and analyze your match history with our interactive
+                    visualizations. Track your progress over time, compare stats
+                    between matches, and gain strategic insights to help you
+                    rank up faster. Filter replays by map, game mode, and
+                    teammates to discover your winning patterns.
+                  </p>
+                </CardCurtainRevealDescription>
+
+                <CurtainRevealButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the outer div's onClick from firing
+                    router.push('/replays');
+                  }}
+                  variant={'secondary'}
+                  size={'icon'}
+                  className="aspect-square rounded-full"
+                >
+                  <ArrowUpRight />
+                </CurtainRevealButton>
+                <CardCurtain className="dark:bg-zinc-50 bg-white" />
+              </CardCurtainRevealBody>
+              {/* No image in the footer since it's already in the background */}
+              <CardCurtainRevealFooter className="mt-auto">
+                {/* Empty footer to maintain the layout */}
+              </CardCurtainRevealFooter>
+            </CardCurtainReveal>
+          </div>
+        </div>
       </div>
     </div>
   );
