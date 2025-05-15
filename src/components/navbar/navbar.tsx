@@ -6,6 +6,7 @@ import { UserDropdown } from '@/components/navbar/user-dropdown';
 import { Link } from '@/lib/i18n';
 import * as m from '@/paraglide/messages';
 import { createClient } from '@/utils/supabase/server';
+import Image from 'next/image';
 
 export const Navbar = async () => {
   const supabase = await createClient();
@@ -42,6 +43,12 @@ export const Navbar = async () => {
     <header className="w-full border-b">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="font-mono text-lg font-bold">
+          {/* <Image
+            src="/images/logo.png"
+            alt="ReplayRhythms"
+            width={150}
+            height={40}
+          /> */}
           Replay Rythms
         </Link>
         <div className="flex items-center gap-2">
