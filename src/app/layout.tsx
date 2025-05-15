@@ -16,14 +16,29 @@ import { languageTag } from '@/paraglide/runtime.js';
 import ResumeTracker from '@/components/ResumeTracker';
 
 export const generateMetadata = (): Metadata => ({
-  metadataBase: new URL(siteConfig.url()),
+  metadataBase: new URL('https://rocket-league-music.vercel.app/'),
   title: {
-    default: 'Replay Rythms',
-    template: `%s | ${siteConfig.title()}`,
+    default:
+      'ReplayRhythms | Rocket League Replay Analysis with Musical Matching',
+    template: `%s | ReplayRhythms`,
   },
   description:
-    'Analyze your Rocket League replays and get song recommendations.',
-  keywords: siteConfig.keywords(),
+    'ReplayRhythms analyzes your Rocket League gameplay and recommends personalized music that matches your unique playstyle. Upload your replay files to discover your gameplay soundtrack.',
+  keywords: [
+    'Rocket League',
+    'replay analysis',
+    'gameplay analysis',
+    'music recommendation',
+    'gaming',
+    'esports',
+    'player analytics',
+    'gameplay metrics',
+    'music matching',
+    'gameplay style',
+    'ReplayRhythms',
+    'ballchasing.com',
+    'gameplay soundtrack',
+  ],
   robots: { index: true, follow: true },
   icons: {
     icon: '/favicon/favicon.ico',
@@ -31,23 +46,36 @@ export const generateMetadata = (): Metadata => ({
     apple: '/favicon/apple-touch-icon.png',
   },
   verification: {
-    google: siteConfig.googleSiteVerificationId(),
+    google: '77bb0b1137e072ca.html',
   },
   openGraph: {
     url: siteConfig.url(),
-    title: siteConfig.title(),
-    description: siteConfig.description(),
-    siteName: siteConfig.title(),
+    title: 'ReplayRhythms | Convert Your Rocket League Gameplay into Music',
+    description:
+      'Upload your Rocket League replay files and discover what your gameplay sounds like. ReplayRhythms analyzes your playstyle and matches it with the perfect soundtrack.',
+    siteName: 'ReplayRhythms',
     images: '/opengraph-image.png',
     type: 'website',
     locale: languageTag(),
   },
   twitter: {
     card: 'summary_large_image',
-    title: siteConfig.title(),
-    description: siteConfig.description(),
+    title: 'ReplayRhythms | Your Rocket League Playstyle as Music',
+    description:
+      'What does your Rocket League gameplay sound like? Upload your replay file to find out with ReplayRhythms.',
     images: '/opengraph-image.png',
+    creator: '@rishabh_1056', // Replace with your Twitter handle if you have one
   },
+  authors: [
+    {
+      name: 'Rishabh Singh', // Replace with your name
+      url: 'https://www.linkedin.com/in/rishabh-singh-a1726b1a6/', // Replace with your URL
+    },
+  ],
+  category: 'Gaming Tools',
+  applicationName: 'ReplayRhythms',
+  creator: 'Rishabh Singh', // Replace with creator name
+  publisher: 'Rishabh Singh', // Replace with publisher name
 });
 
 const RootLayout = ({ children }: PropsWithChildren) => {
