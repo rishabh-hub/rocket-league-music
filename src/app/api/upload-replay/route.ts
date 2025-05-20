@@ -14,6 +14,7 @@ export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   let tempFilePath = null;
+  let parsingMethod = 'backend'; // Declare parsingMethod outside try block
 
   try {
     // Check authentication
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const visibility = (formData.get('visibility') as string) || 'public';
+    parsingMethod = (formData.get('parsingMethod') as string) || 'backend'; // Assign value within try block
 
     if (!file) {
       return NextResponse.json(
@@ -98,89 +100,100 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For ballchasing upload, we need to save the file temporarily
-    // to avoid issues with form-data in serverless environments
-    const tempDir = os.tmpdir();
-    const tempFileName = `${uuidv4()}-${sanitizedFileName}`;
-    tempFilePath = path.join(tempDir, tempFileName);
+    // Handle parsing based on the selected method
+    if (parsingMethod === 'backend') {
+      // For ballchasing upload, we need to save the file temporarily
+      // to avoid issues with form-data in serverless environments
+      const tempDir = os.tmpdir();
+      const tempFileName = `${uuidv4()}-${sanitizedFileName}`;
+      tempFilePath = path.join(tempDir, tempFileName);
 
-    // Write the file to disk
-    fs.writeFileSync(tempFilePath, buffer);
+      // Write the file to disk
+      fs.writeFileSync(tempFilePath, buffer);
 
-    // Start the ballchasing upload in the background
-    // We're NOT awaiting this, so it won't block the response
-    try {
-      // Since we're in a serverless environment, we need to do this part
-      // synchronously to ensure it runs before the function terminates
+      // Start the ballchasing upload in the background
+      // We're NOT awaiting this, so it won't block the response
+      try {
+        // Since we're in a serverless environment, we need to do this part
+        // synchronously to ensure it runs before the function terminates
 
-      // Update status to processing
-      await supabase
-        .from('replays')
-        .update({ status: 'processing' })
-        .eq('id', replayRecord.id);
+        // Update status to processing
+        await supabase
+          .from('replays')
+          .update({ status: 'processing' })
+          .eq('id', replayRecord.id);
 
-      // Get ballchasing API key
-      const ballchasingApiKey = process.env.BALLCHASING_API_KEY;
-      if (!ballchasingApiKey) {
-        throw new Error('Ballchasing API key not configured');
-      }
-
-      // Create FormData using the form-data package (Node.js compatible)
-      const formData = new FormData();
-
-      // Add the file from disk
-      formData.append('file', fs.createReadStream(tempFilePath));
-
-      // Upload to ballchasing.com
-      const ballchasingResponse = await axios.post(
-        `https://ballchasing.com/api/v2/upload?visibility=${visibility}`,
-        formData,
-        {
-          headers: {
-            Authorization: ballchasingApiKey,
-            ...formData.getHeaders(),
-          },
-          maxContentLength: Infinity,
-          maxBodyLength: Infinity,
+        // Get ballchasing API key
+        const ballchasingApiKey = process.env.BALLCHASING_API_KEY;
+        if (!ballchasingApiKey) {
+          throw new Error('Ballchasing API key not configured');
         }
-      );
 
-      let ballchasingId;
+        // Create FormData using the form-data package (Node.js compatible)
+        const formData = new FormData();
 
-      if (ballchasingResponse.status === 201) {
-        // Successful upload or duplicate replay
-        ballchasingId = ballchasingResponse.data.id;
+        // Add the file from disk
+        formData.append('file', fs.createReadStream(tempFilePath));
 
-        // Update the record with ballchasing ID
+        // Upload to ballchasing.com
+        const ballchasingResponse = await axios.post(
+          `https://ballchasing.com/api/v2/upload?visibility=${visibility}`,
+          formData,
+          {
+            headers: {
+              Authorization: ballchasingApiKey,
+              ...formData.getHeaders(),
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+          }
+        );
+
+        let ballchasingId;
+
+        if (ballchasingResponse.status === 201) {
+          // Successful upload or duplicate replay
+          ballchasingId = ballchasingResponse.data.id;
+
+          // Update the record with ballchasing ID
+          await supabase
+            .from('replays')
+            .update({
+              ballchasing_id: ballchasingId,
+              // Keep status as "processing" - we'll check status when user views the replay
+              status: 'processing',
+            })
+            .eq('id', replayRecord.id);
+        } else if (ballchasingResponse.status === 409) {
+          ballchasingId = ballchasingResponse.data.id;
+          redirect(`/replays/${ballchasingId}`);
+        } else {
+          throw new Error(
+            `Unexpected response from ballchasing.com: ${ballchasingResponse.status}`
+          );
+        }
+      } catch (uploadError: any) {
+        console.error('Error in ballchasing upload:', uploadError);
+
+        // Update status to failed on error
         await supabase
           .from('replays')
           .update({
-            ballchasing_id: ballchasingId,
-            // Keep status as "processing" - we'll check status when user views the replay
-            status: 'processing',
+            status: 'failed',
+            metrics: {
+              error:
+                uploadError.message ||
+                'Unknown error during ballchasing upload',
+            },
           })
           .eq('id', replayRecord.id);
-      } else if (ballchasingResponse.status === 409) {
-        ballchasingId = ballchasingResponse.data.id;
-        redirect(`/replays/${ballchasingId}`);
-      } else {
-        throw new Error(
-          `Unexpected response from ballchasing.com: ${ballchasingResponse.status}`
-        );
       }
-    } catch (uploadError: any) {
-      console.error('Error in ballchasing upload:', uploadError);
-
-      // Update status to failed on error
+    } else if (parsingMethod === 'browser') {
+      // For browser parsing, we just need to confirm the file is uploaded to storage
+      // The frontend will fetch it from the storage URL for parsing
       await supabase
         .from('replays')
-        .update({
-          status: 'failed',
-          metrics: {
-            error:
-              uploadError.message || 'Unknown error during ballchasing upload',
-          },
-        })
+        .update({ status: 'uploaded_for_browser_parsing' })
         .eq('id', replayRecord.id);
     }
 
@@ -192,15 +205,22 @@ export async function POST(request: NextRequest) {
       path: storageData?.path || null,
       url: fileUrl,
       replayId: replayRecord.id,
-      status: 'uploaded',
+      status:
+        parsingMethod === 'backend'
+          ? 'uploaded'
+          : 'uploaded_for_browser_parsing',
     });
   } catch (error: any) {
     console.error('Upload error:', error);
     const errorMessage = error.message || 'Internal server error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   } finally {
-    // Clean up the temporary file
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
+    // Clean up the temporary file (only needed for backend parsing)
+    if (
+      parsingMethod === 'backend' &&
+      tempFilePath &&
+      fs.existsSync(tempFilePath)
+    ) {
       try {
         fs.unlinkSync(tempFilePath);
       } catch (cleanupError) {
