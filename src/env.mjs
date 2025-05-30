@@ -1,6 +1,7 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
-
+// TODO: THIS IS OLD, NOT USED. UPDATE THE ENVIRONMENT VARIABLES TO MAKE THIS USEFUL
+// IT IS MOST PROBABLY A VALIDATION LAYER FOR THE ENVIRONMENT VARIABLES
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().min(1),
