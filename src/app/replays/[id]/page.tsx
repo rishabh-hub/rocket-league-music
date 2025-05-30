@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Loader2,
   Share2,
+  Music,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ReplayStats from '@/components/ReplayStats';
@@ -22,6 +23,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { motion } from 'motion/react';
 import VisibilityToggle from '@/components/VisibilityToggle';
 import { Badge } from '@/components/ui/badge';
+import SongRecommendations from '@/components/SongRecommendations';
 
 interface ReplayData {
   id: string;
@@ -405,6 +407,13 @@ export default function ReplayDetailsPage() {
           <TabsTrigger value="players">Player Stats</TabsTrigger>
           <TabsTrigger value="boost">Boost Analysis</TabsTrigger>
           <TabsTrigger value="positioning">Positioning</TabsTrigger>
+          <TabsTrigger
+            value="recommendations"
+            className="flex items-center gap-2"
+          >
+            <Music className="h-4 w-4" />
+            Song Recommendations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -421,6 +430,9 @@ export default function ReplayDetailsPage() {
 
         <TabsContent value="positioning">
           <PlayerStats replayData={replay} statType="positioning" />
+        </TabsContent>
+        <TabsContent value="recommendations">
+          <SongRecommendations replayData={replay} />
         </TabsContent>
       </Tabs>
     </motion.div>

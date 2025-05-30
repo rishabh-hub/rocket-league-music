@@ -57,3 +57,107 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add these styles to your global CSS file
+
+/* Custom volume slider styling */
+/* input[type='range'] {
+  background: linear-gradient(
+    to right,
+    #10b981 0%,
+    #10b981 var(--value, 70%),
+    #e5e7eb var(--value, 70%),
+    #e5e7eb 100%
+  );
+}
+
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input[type='range']::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Spotify-style progress bar */
+.spotify-progress {
+  transition: all 0.3s ease;
+}
+
+.spotify-progress:hover {
+  height: 6px !important;
+}
+
+/* Card hover effects */
+.song-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Playing animation */
+.playing-indicator {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Visualizer bars animation */
+.music-visualizer {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.music-visualizer .bar {
+  width: 3px;
+  background: #10b981;
+  animation: musicVisualizer 1s ease-in-out infinite;
+}
+
+.music-visualizer .bar:nth-child(1) {
+  animation-delay: 0.1s;
+  height: 10px;
+}
+.music-visualizer .bar:nth-child(2) {
+  animation-delay: 0.2s;
+  height: 15px;
+}
+.music-visualizer .bar:nth-child(3) {
+  animation-delay: 0.3s;
+  height: 8px;
+}
+.music-visualizer .bar:nth-child(4) {
+  animation-delay: 0.4s;
+  height: 12px;
+}
+
+@keyframes musicVisualizer {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.3);
+  }
+}  */
