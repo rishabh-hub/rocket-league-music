@@ -1,29 +1,24 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export function LoginPageClient() {
+export function AuthSuccessHandler() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const supabase = createClient();
+    const authSuccess = searchParams.get('auth_success');
 
-    // Check for authentication changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // User just signed in, redirect to home and refresh the page
-        router.push('/');
-        router.refresh();
-      }
-    });
+    if (authSuccess === 'true') {
+      // Remove the query parameter and refresh the page to update server-side state
+      const url = new URL(window.location.href);
+      url.searchParams.delete('auth_success');
 
-    // Cleanup subscription on unmount
-    return () => subscription.unsubscribe();
-  }, [router]);
+      // Force a full page refresh to ensure server-side rendering picks up the new auth state
+      window.location.replace(url.toString());
+    }
+  }, [searchParams, router]);
 
   return null;
 }

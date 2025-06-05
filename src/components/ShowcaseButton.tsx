@@ -83,7 +83,7 @@ export default function ShowcaseButton() {
               transformOrigin: 'center',
             }}
           >
-            <SparkleIcon className="h-5 w-5 text-yellow-300 filter drop-shadow-lg" />
+            <SparkleIcon className="h-5 w-5 text-yellow-300 drop-shadow-lg" />
           </motion.div>
         ))}
 

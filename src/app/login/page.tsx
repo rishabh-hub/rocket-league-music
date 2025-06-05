@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 
 import { googleOauthLogin, login, signup } from './action';
-import { LoginPageClient } from './client';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,9 +30,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <>
-      <LoginPageClient />
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
@@ -113,6 +110,5 @@ export default async function LoginPage() {
           </CardContent>
         </Card>
       </div>
-    </>
   );
 }

@@ -1,6 +1,6 @@
 import '@/styles/globals.css';
 
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, Suspense } from 'react';
 import { LanguageProvider } from '@inlang/paraglide-next';
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
@@ -14,6 +14,7 @@ import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import { languageTag } from '@/paraglide/runtime.js';
 import ResumeTracker from '@/components/ResumeTracker';
+import { AuthSuccessHandler } from '@/app/login/client';
 
 export const generateMetadata = (): Metadata => ({
   metadataBase: new URL('https://rocket-league-music.vercel.app/'),
@@ -84,6 +85,9 @@ const RootLayout = ({ children }: PropsWithChildren) => {
       <html lang={languageTag()} suppressHydrationWarning>
         <body className={cn('min-h-screen font-sans', fonts)}>
           <ThemeProvider attribute="class">
+            <Suspense fallback={null}>
+              <AuthSuccessHandler />
+            </Suspense>
             <Navbar />
             <ResumeTracker />
             {children}

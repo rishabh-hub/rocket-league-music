@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const visitorDataCookie = (await cookieStore).get('resume_visitor_data');
 
     // Get the visitor data from the cookie
-    let visitorData = visitorDataCookie
+    const visitorData = visitorDataCookie
       ? JSON.parse(visitorDataCookie.value)
       : { timestamp: new Date().toISOString() };
 

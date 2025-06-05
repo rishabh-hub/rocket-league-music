@@ -107,14 +107,14 @@ export default function SpotifySongCard({
         <div className="p-4">
           {/* Song Info Header */}
           <div className="flex justify-between items-start mb-3">
-            <div className="min-w-0 flex-grow">
+            <div className="min-w-0 grow">
               <h5 className="font-semibold truncate">{song.title}</h5>
               <p className="text-muted-foreground text-sm truncate">
                 by {song.artist}
               </p>
             </div>
 
-            <div className="text-right flex-shrink-0 ml-4">
+            <div className="text-right shrink-0 ml-4">
               <div className="text-sm font-medium">
                 Match: {song.match_score}%
               </div>
