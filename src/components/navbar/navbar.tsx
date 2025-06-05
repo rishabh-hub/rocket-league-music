@@ -45,7 +45,7 @@ export const Navbar = async () => {
         <Link href="/" className="font-mono text-lg font-bold">
           {/* <Image
             src="/images/logo.png"
-            alt="ReplayRhythms"
+            alt="ReplayRhythms - Rocket League Replay Analysis with Musical Matching"
             width={150}
             height={40}
           /> */}

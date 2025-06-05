@@ -145,6 +145,7 @@ export default function SpotifySongCard({
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
                 className="block border-none bg-transparent"
+                title={`Spotify player for ${song.title} by ${song.artist}`}
                 style={{
                   borderRadius: '0.5rem',
                   border: 'none',

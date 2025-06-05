@@ -92,7 +92,16 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         <div
           onClick={() => router.push('/upload-replay')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/upload-replay');
+            }
+          }}
           className="cursor-pointer transition-transform hover:scale-[1.01]"
+          role="button"
+          tabIndex={0}
+          aria-label="Navigate to upload replay page"
         >
           {/* Card with background image */}
           <div className="relative">
@@ -100,7 +109,7 @@ export default function HomePage() {
             <div className="absolute inset-0 z-0">
               <Image
                 fill
-                alt="porsche"
+                alt="Rocket League car in arena - Upload replay files to analyze your gameplay"
                 src="/images/porsche.webp"
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -150,7 +159,16 @@ export default function HomePage() {
 
         <div
           onClick={() => router.push('/replays')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/replays');
+            }
+          }}
           className="cursor-pointer transition-transform hover:scale-[1.01]"
+          role="button"
+          tabIndex={0}
+          aria-label="Navigate to view replays page"
         >
           {/* Card with background image */}
           <div className="relative">
@@ -158,7 +176,7 @@ export default function HomePage() {
             <div className="absolute inset-0 z-0">
               <Image
                 fill
-                alt="dashboard"
+                alt="Rocket League analytics dashboard showing match statistics and gameplay metrics"
                 src="/images/dashboard.png"
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 50vw"
