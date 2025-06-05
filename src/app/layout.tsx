@@ -55,7 +55,7 @@ export const generateMetadata = (): Metadata => ({
     description:
       'Upload your Rocket League replay files and discover what your gameplay sounds like. ReplayRhythms analyzes your playstyle and matches it with the perfect soundtrack.',
     siteName: 'ReplayRhythms',
-    images: '/images/logo.png',
+    images: `${siteConfig.url()}/images/logo.png`,
     type: 'website',
     locale: languageTag(),
   },
@@ -64,7 +64,11 @@ export const generateMetadata = (): Metadata => ({
     title: 'ReplayRhythms | Your Rocket League Playstyle as Music',
     description:
       'What does your Rocket League gameplay sound like? Upload your replay file to find out with ReplayRhythms.',
-    images: '/images/logo.png',
+    images: {
+      url: `${siteConfig.url()}/images/logo.png`,
+      width: 1024,
+      height: 1024,
+    },
     creator: '@rishabh_1056', // Replace with your Twitter handle if you have one
   },
   authors: [
