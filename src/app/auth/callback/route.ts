@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 // The client you created from the Server-Side Auth instructions
 import { createClient } from '@/utils/supabase/server';
@@ -15,17 +16,18 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Force revalidation of the layout to refresh authentication state
+      revalidatePath('/', 'layout');
+
       const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development';
       if (isLocalEnv) {
         // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}?auth_success=true`);
+        return NextResponse.redirect(`${origin}${next}`);
       } else if (forwardedHost) {
-        return NextResponse.redirect(
-          `https://${forwardedHost}${next}?auth_success=true`
-        );
+        return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}?auth_success=true`);
+        return NextResponse.redirect(`${origin}${next}`);
       }
     }
   }
