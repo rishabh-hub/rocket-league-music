@@ -14,6 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/server';
 
+export const metadata = {
+  title: 'Sign In | ReplayRhythms',
+  description:
+    'Sign in to your ReplayRhythms account to upload and analyze Rocket League replays with personalized music recommendations.',
+};
+
 export default async function LoginPage() {
   // Check if user is already logged in, redirect to home if they are
   const supabase = await createClient();
@@ -79,6 +85,7 @@ export default async function LoginPage() {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 48 48"
                 className="mr-2 size-5"
+                aria-hidden="true"
               >
                 <path
                   fill="#FFC107"
