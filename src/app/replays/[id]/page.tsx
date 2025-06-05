@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/components/ui/use-toast'; // Changed from sonner to shadcn toast
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -32,12 +33,13 @@ interface ReplayData {
   visibility: string;
   createdAt: string;
   metrics?: any;
+  user_id?: string;
 }
 
 export default function ReplayDetailsPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  //   const supabase = createClient();
+  const supabase = createClient();
   const { toast } = useToast(); // Using shadcn toast hook
 
   const [replay, setReplay] = useState<ReplayData | null>(null);
@@ -45,6 +47,29 @@ export default function ReplayDetailsPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isShowcase, setIsShowcase] = useState<boolean>(false);
+  const [user, setUser] = useState<any>(null);
+  const [isUserOwner, setIsUserOwner] = useState<boolean>(false);
+
+  // Check user authentication status
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+
+    checkUser();
+  }, [supabase]);
+
+  // Update owner status when user or replay changes
+  useEffect(() => {
+    if (replay && user) {
+      setIsUserOwner(replay.user_id === user.id);
+    } else {
+      setIsUserOwner(false);
+    }
+  }, [replay, user]);
 
   // Poll for updates while processing
   useEffect(() => {
@@ -53,16 +78,6 @@ export default function ReplayDetailsPage() {
         const response = await fetch(`/api/replay/${id}`);
 
         if (!response.ok) {
-          if (response.status === 401) {
-            // User is not authenticated
-            toast({
-              variant: 'destructive',
-              title: 'Authentication Error',
-              description: 'Please login to view replay details',
-            });
-            router.push('/login');
-            return;
-          }
           if (response.status === 403) {
             // User doesn't have access to this replay
             toast({
@@ -377,7 +392,7 @@ export default function ReplayDetailsPage() {
               Share
             </Button>
           )}
-          {!isShowcase && (
+          {!isShowcase && isUserOwner && (
             <div className="ml-auto">
               <VisibilityToggle
                 replayId={replay.id}
@@ -392,6 +407,20 @@ export default function ReplayDetailsPage() {
                   }
                 }}
               />
+            </div>
+          )}
+          
+          {/* Call-to-action for unauthenticated users viewing public replays */}
+          {replay.visibility === 'public' && !user && (
+            <div className="ml-auto">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push('/login')}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              >
+                Sign up to upload your replays
+              </Button>
             </div>
           )}
         </div>

@@ -6,7 +6,6 @@ import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowUpRight } from 'lucide-react';
-import { Eye } from 'lucide-react';
 import {
   CardCurtain,
   CardCurtainReveal,
@@ -18,7 +17,6 @@ import {
 import { CurtainRevealButton } from '@/components/ui/CurtainRevealButton';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { Button } from '@/components/ui/button';
 import ShowcaseButton from '@/components/ShowcaseButton';
 
 export default function HomePage() {
@@ -34,20 +32,11 @@ export default function HomePage() {
       } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setLoading(false);
-
-      // Redirect to login if not authenticated
-      if (!session) {
-        router.push('/login');
-      }
     };
 
     checkUser();
-  }, [router, supabase]);
+  }, [supabase]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
 
   if (loading) {
     return (
@@ -57,9 +46,8 @@ export default function HomePage() {
     );
   }
 
-  if (!user) {
-    return null; // Will redirect to login via useEffect
-  }
+  // Show different content based on authentication status
+  const isAuthenticated = !!user;
 
   return (
     <div className="container max-w-5xl py-8 px-4">
@@ -91,11 +79,21 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         <div
-          onClick={() => router.push('/upload-replay')}
+          onClick={() => {
+            if (isAuthenticated) {
+              router.push('/upload-replay');
+            } else {
+              router.push('/login');
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              router.push('/upload-replay');
+              if (isAuthenticated) {
+                router.push('/upload-replay');
+              } else {
+                router.push('/login');
+              }
             }
           }}
           className="cursor-pointer transition-transform hover:scale-[1.01]"
@@ -133,13 +131,22 @@ export default function HomePage() {
                     positioning data, and performance metrics to elevate your
                     skills and strategy. Identify areas for improvement with our
                     comprehensive dashboard.
+                    {!isAuthenticated && (
+                      <span className="block mt-2 text-sm text-blue-400">
+                        Sign in to get started!
+                      </span>
+                    )}
                   </p>
                 </CardCurtainRevealDescription>
 
                 <CurtainRevealButton
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents the outer div's onClick from firing
-                    router.push('/upload-replay');
+                    if (isAuthenticated) {
+                      router.push('/upload-replay');
+                    } else {
+                      router.push('/login');
+                    }
                   }}
                   variant={'secondary'}
                   size={'icon'}
@@ -158,11 +165,21 @@ export default function HomePage() {
         </div>
 
         <div
-          onClick={() => router.push('/replays')}
+          onClick={() => {
+            if (isAuthenticated) {
+              router.push('/replays');
+            } else {
+              router.push('/login');
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              router.push('/replays');
+              if (isAuthenticated) {
+                router.push('/replays');
+              } else {
+                router.push('/login');
+              }
             }
           }}
           className="cursor-pointer transition-transform hover:scale-[1.01]"
@@ -200,13 +217,22 @@ export default function HomePage() {
                     between matches, and gain strategic insights to help you
                     rank up faster. Filter replays by map, game mode, and
                     teammates to discover your winning patterns.
+                    {!isAuthenticated && (
+                      <span className="block mt-2 text-sm text-blue-400">
+                        Sign in to access your replays!
+                      </span>
+                    )}
                   </p>
                 </CardCurtainRevealDescription>
 
                 <CurtainRevealButton
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents the outer div's onClick from firing
-                    router.push('/replays');
+                    if (isAuthenticated) {
+                      router.push('/replays');
+                    } else {
+                      router.push('/login');
+                    }
                   }}
                   variant={'secondary'}
                   size={'icon'}

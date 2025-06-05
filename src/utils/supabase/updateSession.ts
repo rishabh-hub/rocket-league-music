@@ -48,6 +48,7 @@ export async function updateSession(request: NextRequest) {
     '/auth/callback',
     '/auth/auth-code-error',
     '/error',
+    '/showcase',
   ];
 
   // Check if the current path is in the public paths
@@ -59,6 +60,41 @@ export async function updateSession(request: NextRequest) {
   if (path === '/') {
     // Allow access to home page regardless of auth status
     return supabaseResponse;
+  }
+
+  // Check if this is a replay route and if the replay is public
+  const replayMatch = path.match(/^\/replays\/([^\/]+)$/);
+  if (replayMatch && !user) {
+    const replayId = replayMatch[1];
+    
+    try {
+      // Check if this replay is public
+      const { data: replay, error } = await supabase
+        .from('replays')
+        .select('visibility')
+        .eq('id', replayId)
+        .single();
+
+      console.log(`Middleware check for replay ${replayId}:`, { replay, error });
+
+      if (!error && replay?.visibility === 'public') {
+        console.log(`Allowing unauthenticated access to public replay: ${replayId}`);
+        // Allow access to public replays even without authentication
+        return supabaseResponse;
+      }
+      
+      if (error) {
+        console.log(`Error checking replay ${replayId}:`, error);
+        // If replay doesn't exist, let the API handle the 404
+        if (error.code === 'PGRST116') {
+          console.log(`Replay ${replayId} not found, allowing API to handle 404`);
+          return supabaseResponse;
+        }
+      }
+    } catch (error) {
+      // If there's an error checking the replay, fall through to normal auth check
+      console.error('Error checking replay visibility:', error);
+    }
   }
 
   if (

@@ -201,6 +201,15 @@ export default function ShowcasePage() {
                   <div
                     className="cursor-pointer p-4"
                     onClick={() => router.push(`/replays/${replay.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(`/replays/${replay.id}`);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View analysis for ${getGameSummary(replay)}`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
