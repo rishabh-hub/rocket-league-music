@@ -1,5 +1,3 @@
-'use client';
-
 export const metadata = {
   title: 'Error | ReplayRhythms',
   description: 'An error occurred while processing your request.',
