@@ -37,7 +37,6 @@ export default function HomePage() {
     checkUser();
   }, [supabase]);
 
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -58,12 +57,12 @@ export default function HomePage() {
         transition={{ delay: 0.5, duration: 0.5 }}
       >
         <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-2">
-          Rocket League Replay Analyzer
+          Rocket League Music Match
         </h1>
 
         <motion.p className="dark:text-zinc-400 text-zinc-600 max-w-md">
-          Elevate your game with detailed insights and analytics from your match
-          replays
+          Get personalized music recommendations based on your Rocket League
+          playstyle and replay stats
         </motion.p>
         <ShowcaseButton />
       </motion.div>
@@ -74,7 +73,7 @@ export default function HomePage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.5 }}
       >
-        See what others are analyzing
+        Discover your perfect gaming soundtrack
       </motion.p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
@@ -126,11 +125,11 @@ export default function HomePage() {
                 </CardCurtainRevealTitle>
                 <CardCurtainRevealDescription className="mb-8">
                   <p className="text-base leading-relaxed text-zinc-300">
-                    Upload your .replay files and discover detailed insights
-                    about your gameplay. Analyze boost usage patterns,
-                    positioning data, and performance metrics to elevate your
-                    skills and strategy. Identify areas for improvement with our
-                    comprehensive dashboard.
+                    Upload your .replay files to get music recommendations
+                    tailored to your unique playstyle. Our AI analyzes your
+                    gameplay patterns, aggression level, and match dynamics to
+                    suggest the perfect soundtrack that matches your Rocket
+                    League energy and flow.
                     {!isAuthenticated && (
                       <span className="block mt-2 text-sm text-blue-400">
                         Sign in to get started!
@@ -212,11 +211,11 @@ export default function HomePage() {
                 </CardCurtainRevealTitle>
                 <CardCurtainRevealDescription className="mb-8">
                   <p className="text-base leading-relaxed text-zinc-300">
-                    Browse and analyze your match history with our interactive
-                    visualizations. Track your progress over time, compare stats
-                    between matches, and gain strategic insights to help you
-                    rank up faster. Filter replays by map, game mode, and
-                    teammates to discover your winning patterns.
+                    Browse your personalized music recommendations and replay
+                    history. See how your playstyle has evolved and discover new
+                    tracks that match your current gaming vibe. Connect with
+                    Spotify to create playlists from your recommended songs and
+                    enhance your Rocket League sessions.
                     {!isAuthenticated && (
                       <span className="block mt-2 text-sm text-blue-400">
                         Sign in to access your replays!
