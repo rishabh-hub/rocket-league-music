@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
   const replayMatch = path.match(/^\/replays\/([^\/]+)$/);
   if (replayMatch && !user) {
     const replayId = replayMatch[1];
-    
+
     try {
       // Check if this replay is public
       const { data: replay, error } = await supabase
@@ -75,19 +75,26 @@ export async function updateSession(request: NextRequest) {
         .eq('id', replayId)
         .single();
 
-      console.log(`Middleware check for replay ${replayId}:`, { replay, error });
+      console.log(`Middleware check for replay ${replayId}:`, {
+        replay,
+        error,
+      });
 
       if (!error && replay?.visibility === 'public') {
-        console.log(`Allowing unauthenticated access to public replay: ${replayId}`);
+        console.log(
+          `Allowing unauthenticated access to public replay: ${replayId}`
+        );
         // Allow access to public replays even without authentication
         return supabaseResponse;
       }
-      
+
       if (error) {
         console.log(`Error checking replay ${replayId}:`, error);
         // If replay doesn't exist, let the API handle the 404
         if (error.code === 'PGRST116') {
-          console.log(`Replay ${replayId} not found, allowing API to handle 404`);
+          console.log(
+            `Replay ${replayId} not found, allowing API to handle 404`
+          );
           return supabaseResponse;
         }
       }

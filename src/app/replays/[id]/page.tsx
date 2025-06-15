@@ -409,7 +409,7 @@ export default function ReplayDetailsPage() {
               />
             </div>
           )}
-          
+
           {/* Call-to-action for unauthenticated users viewing public replays */}
           {replay.visibility === 'public' && !user && (
             <div className="ml-auto">
