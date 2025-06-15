@@ -57,7 +57,7 @@ export const generateMetadata = (): Metadata => ({
     siteName: 'ReplayRhythms',
     images: `${siteConfig.url()}/images/logo.png`,
     type: 'website',
-    locale: languageTag(),
+    locale: 'en', // Use default locale for metadata
   },
   twitter: {
     card: 'summary_large_image',
@@ -86,7 +86,7 @@ export const generateMetadata = (): Metadata => ({
 const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <LanguageProvider>
-      <html lang={languageTag()} suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning>
         <body className={cn('min-h-screen font-sans', fonts)}>
           <ThemeProvider attribute="class">
             <Suspense fallback={null}>
