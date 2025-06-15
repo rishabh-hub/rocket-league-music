@@ -74,6 +74,12 @@ This is a **Rocket League Music Recommendation System** that:
 - Internationalization set up for English and Polish (en/pl)
 - Comprehensive testing setup with Jest (unit) and Playwright (e2e)
 
+### Scripts
+- `scripts/fix-stuck-replay.js` - Admin script to fix replays stuck in "processing" status
+  - Usage: `node scripts/fix-stuck-replay.js [REPLAY_ID] [BALLCHASING_ID]`
+  - Requires: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, BALLCHASING_API_KEY environment variables
+  - Bypasses authentication using Supabase service role key
+
 ## Personal Working Guidelines
 
 ### Interaction
