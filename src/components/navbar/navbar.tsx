@@ -3,6 +3,7 @@ import { LanguageSwitcher } from './language-switcher';
 // import { auth } from '@/app/api/auth/[...nextauth]/auth-options';
 import { SignInButton } from '@/components/navbar/sign-in-button';
 import { UserDropdown } from '@/components/navbar/user-dropdown';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Link } from '@/lib/i18n';
 import * as m from '@/paraglide/messages';
 import { createClient } from '@/utils/supabase/server';
@@ -63,6 +64,7 @@ export const Navbar = async () => {
             <SignInButton />
           )}
 
+          <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
       </div>
