@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { QuickFeedback } from '@/components/feedback';
 
 interface UploadResponse {
   message: string;
@@ -208,6 +209,13 @@ const UploadReplayPage = () => {
                 <p className="text-sm">Redirecting to processing page...</p>
                 <div className="mt-2">
                   <Progress value={100} className="h-1" />
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <QuickFeedback
+                    context="replay-upload"
+                    label="How was the upload experience?"
+                    variant="helpful"
+                  />
                 </div>
               </AlertDescription>
             </Alert>

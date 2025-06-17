@@ -16,19 +16,16 @@ const featureRequestUpdateSchema = z.object({
   target_release: z.string().optional(),
 });
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check admin authentication
     await getAdminUser();
 
     const supabase = await createClient();
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Get feature request with vote details
     const { data, error } = await supabase
@@ -67,13 +64,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check admin authentication
     await getAdminUser();
 
     const supabase = await createClient();
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Parse and validate request body
     const body = await request.json();
@@ -157,13 +157,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check admin authentication
     await getAdminUser();
 
     const supabase = await createClient();
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Delete feature request (votes will be cascade deleted)
     const { error } = await supabase

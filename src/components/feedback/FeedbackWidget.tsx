@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { track } from '@vercel/analytics';
 import {
   MessageSquare,
   X,
@@ -100,6 +101,11 @@ export function FeedbackWidget({
     const timer = setTimeout(() => {
       setShowAutoPrompt(true);
       setHasAutoShown(true);
+      // Track auto-show event
+      track('Feedback Widget Auto-Shown', {
+        delay: autoShowDelay,
+        page: window.location.pathname,
+      });
     }, autoShowDelay);
 
     return () => clearTimeout(timer);
@@ -155,12 +161,16 @@ export function FeedbackWidget({
           router.push('/login');
           return;
         }
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: 'Unknown error' }));
         console.error('API Error:', response.status, errorData);
-        
+
         // Handle validation errors specifically
         if (response.status === 400 && errorData.errors) {
-          const validationErrors = errorData.errors.map((err: any) => err.message).join(', ');
+          const validationErrors = errorData.errors
+            .map((err: any) => err.message)
+            .join(', ');
           toast({
             title: 'Validation Error',
             description: validationErrors,
@@ -168,13 +178,21 @@ export function FeedbackWidget({
           });
           return;
         }
-        
+
         throw new Error(errorData.message || 'Failed to submit feedback');
       }
 
       toast({
         title: 'Feedback submitted!',
         description: "Thank you for your feedback. We'll review it soon.",
+      });
+
+      // Track successful submission
+      track('Feedback Submitted', {
+        type: selectedType,
+        messageLength: message.trim().length,
+        page: window.location.pathname,
+        autoTriggered: showAutoPrompt,
       });
 
       // Reset form
@@ -195,6 +213,12 @@ export function FeedbackWidget({
   };
 
   const handleDismiss = () => {
+    // Track dismissal
+    track('Feedback Widget Dismissed', {
+      page: window.location.pathname,
+      autoTriggered: showAutoPrompt,
+    });
+
     setIsDismissed(true);
     setShowAutoPrompt(false);
     setIsOpen(false);
@@ -208,7 +232,13 @@ export function FeedbackWidget({
     return (
       <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
         <Button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            track('Feedback Widget Opened', {
+              trigger: 'manual',
+              page: window.location.pathname,
+            });
+          }}
           size="lg"
           className="rounded-full shadow-lg hover:scale-105 transition-transform"
           aria-label="Open feedback widget"
@@ -289,12 +319,15 @@ export function FeedbackWidget({
                 maxLength={2000}
                 required
               />
-              <div className={`text-xs text-right ${
-                message.length < 10 
-                  ? 'text-red-500 dark:text-red-400' 
-                  : 'text-muted-foreground'
-              }`}>
-                {message.length}/2000 {message.length < 10 ? '(minimum 10 characters)' : ''}
+              <div
+                className={`text-xs text-right ${
+                  message.length < 10
+                    ? 'text-red-500 dark:text-red-400'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                {message.length}/2000{' '}
+                {message.length < 10 ? '(minimum 10 characters)' : ''}
               </div>
             </div>
 

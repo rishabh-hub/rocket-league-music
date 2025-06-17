@@ -29,19 +29,16 @@ const feedbackUpdateSchema = z.object({
     .optional(),
 });
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check admin authentication
     await getAdminUser();
 
     const supabase = await createClient();
-    const feedbackId = params.id;
+    const { id: feedbackId } = await params;
 
     // Get feedback with responses
     const { data, error } = await supabase
@@ -76,13 +73,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check admin authentication
     const adminUser = await getAdminUser();
 
     const supabase = await createClient();
-    const feedbackId = params.id;
+    const { id: feedbackId } = await params;
 
     // Parse and validate request body
     const body = await request.json();

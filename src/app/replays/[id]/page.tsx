@@ -25,6 +25,7 @@ import { motion } from 'motion/react';
 import VisibilityToggle from '@/components/VisibilityToggle';
 import { Badge } from '@/components/ui/badge';
 import SongRecommendations from '@/components/SongRecommendations';
+import { QuickFeedback } from '@/components/feedback';
 
 interface ReplayData {
   id: string;
@@ -447,6 +448,13 @@ export default function ReplayDetailsPage() {
 
         <TabsContent value="overview">
           <ReplayStats replayData={replay} />
+          <div className="mt-6 flex justify-center">
+            <QuickFeedback
+              context="replay-stats"
+              label="Was this replay analysis helpful?"
+              variant="helpful"
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="players">
@@ -462,6 +470,13 @@ export default function ReplayDetailsPage() {
         </TabsContent>
         <TabsContent value="recommendations">
           <SongRecommendations replayData={replay} />
+          <div className="mt-6 flex justify-center">
+            <QuickFeedback
+              context="music-recommendations"
+              label="How did you like these song recommendations?"
+              variant="thumbs"
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </motion.div>
