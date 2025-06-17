@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown, Check } from 'lucide-react';
+import { track } from '@vercel/analytics';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -60,6 +61,15 @@ export function QuickFeedback({
 
       setIsSubmitted(true);
       onFeedbackSubmitted?.(rating);
+
+      // Track quick feedback submission
+      track('Quick Feedback Submitted', {
+        context,
+        rating,
+        variant,
+        page: window.location.pathname,
+        authenticated: !!sessionStorage.getItem('supabase.auth.token'),
+      });
 
       // Show success message briefly
       toast({

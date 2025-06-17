@@ -4,13 +4,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check authentication
     const supabase = await createClient();
@@ -22,7 +19,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Validate feature request exists
     const { data: featureRequest, error: featureError } = await supabase
@@ -105,7 +102,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Check authentication
     const supabase = await createClient();
@@ -117,7 +117,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Find and delete user's vote
     const { data: vote, error: voteError } = await supabase
