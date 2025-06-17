@@ -5,7 +5,9 @@
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || 'https://23ae53ee49708228a8821815d850dfd3@o4509433100959744.ingest.de.sentry.io/4509503680151632',
+  dsn:
+    process.env.NEXT_PUBLIC_SENTRY_DSN ||
+    'https://23ae53ee49708228a8821815d850dfd3@o4509433100959744.ingest.de.sentry.io/4509503680151632',
 
   // Set environment for better filtering in Sentry dashboard
   environment: process.env.NODE_ENV || 'development',
@@ -38,21 +40,24 @@ Sentry.init({
     // Filter out errors from browser extensions and irrelevant errors
     if (event.exception) {
       const error = event.exception.values?.[0];
-      if (error?.stacktrace?.frames?.some(frame => 
-        frame.filename?.includes('extension://') || 
-        frame.filename?.includes('moz-extension://') ||
-        frame.filename?.includes('chrome-extension://') ||
-        frame.filename?.includes('safari-extension://')
-      )) {
+      if (
+        error?.stacktrace?.frames?.some(
+          (frame) =>
+            frame.filename?.includes('extension://') ||
+            frame.filename?.includes('moz-extension://') ||
+            frame.filename?.includes('chrome-extension://') ||
+            frame.filename?.includes('safari-extension://')
+        )
+      ) {
         return null;
       }
     }
-    
+
     // Filter out network errors from ad blockers
     if (event.message?.includes('Non-Error promise rejection captured')) {
       return null;
     }
-    
+
     return event;
   },
 });

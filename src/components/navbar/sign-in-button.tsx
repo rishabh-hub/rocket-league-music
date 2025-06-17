@@ -12,9 +12,5 @@ export const SignInButton = () => {
     router.push('/login');
   };
 
-  return (
-    <Button onClick={handleSignIn}>
-      {m.sign_in()}
-    </Button>
-  );
+  return <Button onClick={handleSignIn}>{m.sign_in()}</Button>;
 };
