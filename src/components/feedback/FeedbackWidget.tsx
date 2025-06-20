@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@vercel/analytics';
+import { useContextualFeedbackContext } from '@/contexts/ContextualFeedbackContext';
 import {
   MessageSquare,
   X,
@@ -94,11 +95,32 @@ export function FeedbackWidget({
   const { toast } = useToast();
   const router = useRouter();
 
+  // Use shared context state
+  const {
+    shouldSuppressGlobalFeedback,
+    shouldOpenFullFeedback,
+    clearFullFeedbackTrigger,
+  } = useContextualFeedbackContext();
+
   // Auto-show logic
   useEffect(() => {
     if (isDismissed || hasAutoShown) return;
 
     const timer = setTimeout(() => {
+      // Check if contextual feedback should suppress global auto-show
+      if (shouldSuppressGlobalFeedback()) {
+        // Don't show global feedback, but mark as shown to prevent retries
+        setHasAutoShown(true);
+
+        // Track suppression for analytics
+        track('Feedback Widget Auto-Show Suppressed', {
+          reason: 'contextual_feedback_active',
+          delay: autoShowDelay,
+          page: window.location.pathname,
+        });
+        return;
+      }
+
       setShowAutoPrompt(true);
       setHasAutoShown(true);
       // Track auto-show event
@@ -109,7 +131,50 @@ export function FeedbackWidget({
     }, autoShowDelay);
 
     return () => clearTimeout(timer);
-  }, [autoShowDelay, isDismissed, hasAutoShown]);
+  }, [autoShowDelay, isDismissed, hasAutoShown, shouldSuppressGlobalFeedback]);
+
+  // Listen for contextual feedback trigger to open full feedback
+  useEffect(() => {
+    if (shouldOpenFullFeedback) {
+      // Map contextual context to feedback type
+      const contextToFeedbackType = (context: string): FeedbackType => {
+        switch (context) {
+          case 'replay-upload-success':
+          case 'replay-stats-engagement':
+            return 'improvement';
+          case 'music-recommendations-viewed':
+          case 'spotify-integration-used':
+            return 'feature';
+          case 'error-recovery':
+            return 'bug';
+          case 'page-engagement':
+          default:
+            return 'general';
+        }
+      };
+
+      // Set the appropriate feedback type based on context
+      const feedbackType = contextToFeedbackType(
+        shouldOpenFullFeedback.context
+      );
+      setSelectedType(feedbackType);
+
+      // Open the widget
+      setIsOpen(true);
+      setShowAutoPrompt(false); // Don't show as auto-prompt
+
+      // Clear the trigger
+      clearFullFeedbackTrigger();
+
+      // Track the opening from contextual trigger
+      track('Feedback Widget Opened', {
+        trigger: 'contextual',
+        context: shouldOpenFullFeedback.context,
+        prefilledType: feedbackType,
+        page: window.location.pathname,
+      });
+    }
+  }, [shouldOpenFullFeedback, clearFullFeedbackTrigger]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

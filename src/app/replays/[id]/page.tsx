@@ -25,7 +25,8 @@ import { motion } from 'motion/react';
 import VisibilityToggle from '@/components/VisibilityToggle';
 import { Badge } from '@/components/ui/badge';
 import SongRecommendations from '@/components/SongRecommendations';
-import { QuickFeedback } from '@/components/feedback';
+import { useContextualFeedbackContext } from '@/contexts/ContextualFeedbackContext';
+import { ContextualPrompt } from '@/components/feedback/ContextualPrompt';
 
 interface ReplayData {
   id: string;
@@ -51,6 +52,17 @@ export default function ReplayDetailsPage() {
   const [user, setUser] = useState<any>(null);
   const [isUserOwner, setIsUserOwner] = useState<boolean>(false);
 
+  // Contextual feedback hook
+  const {
+    activePrompt,
+    dismissPrompt,
+    completePrompt,
+    triggerReplayStatsEngagement,
+    triggerMusicRecommendationsViewed,
+    triggerSpotifyIntegrationUsed,
+    triggerFullFeedback,
+  } = useContextualFeedbackContext();
+
   // Check user authentication status
   useEffect(() => {
     const checkUser = async () => {
@@ -71,6 +83,27 @@ export default function ReplayDetailsPage() {
       setIsUserOwner(false);
     }
   }, [replay, user]);
+
+  // Track time spent on replay stats for contextual feedback
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    // Only trigger for stats-related tabs when replay is ready
+    if (
+      status === 'ready' &&
+      ['overview', 'players', 'boost', 'positioning'].includes(activeTab)
+    ) {
+      timer = setTimeout(() => {
+        triggerReplayStatsEngagement();
+      }, 120000); // 2 minutes
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [activeTab, status, triggerReplayStatsEngagement]);
 
   // Poll for updates while processing
   useEffect(() => {
@@ -448,13 +481,6 @@ export default function ReplayDetailsPage() {
 
         <TabsContent value="overview">
           <ReplayStats replayData={replay} />
-          <div className="mt-6 flex justify-center">
-            <QuickFeedback
-              context="replay-stats"
-              label="Was this replay analysis helpful?"
-              variant="helpful"
-            />
-          </div>
         </TabsContent>
 
         <TabsContent value="players">
@@ -469,16 +495,29 @@ export default function ReplayDetailsPage() {
           <PlayerStats replayData={replay} statType="positioning" />
         </TabsContent>
         <TabsContent value="recommendations">
-          <SongRecommendations replayData={replay} />
-          <div className="mt-6 flex justify-center">
-            <QuickFeedback
-              context="music-recommendations"
-              label="How did you like these song recommendations?"
-              variant="thumbs"
-            />
-          </div>
+          <SongRecommendations
+            replayData={replay}
+            onMusicRecommendationsViewed={triggerMusicRecommendationsViewed}
+            onSpotifyIntegrationUsed={triggerSpotifyIntegrationUsed}
+          />
         </TabsContent>
       </Tabs>
+
+      {/* Contextual Feedback Prompt */}
+      {activePrompt && (
+        <ContextualPrompt
+          context={activePrompt.context}
+          message={activePrompt.message}
+          onDismiss={dismissPrompt}
+          onOpenFullFeedback={() => {
+            // Trigger the global FeedbackWidget to open with the contextual context
+            if (activePrompt) {
+              triggerFullFeedback(activePrompt.context);
+            }
+            completePrompt();
+          }}
+        />
+      )}
     </motion.div>
   );
 }

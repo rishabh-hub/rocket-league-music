@@ -30,7 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { QuickFeedback } from '@/components/feedback';
+import { useContextualFeedbackContext } from '@/contexts/ContextualFeedbackContext';
+import { ContextualPrompt } from '@/components/feedback/ContextualPrompt';
 
 interface UploadResponse {
   message: string;
@@ -53,6 +54,16 @@ const UploadReplayPage = () => {
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   // const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [visibility, setVisibility] = useState<string>('public');
+
+  // Contextual feedback hook
+  const {
+    activePrompt,
+    dismissPrompt,
+    completePrompt,
+    triggerReplayUploadSuccess,
+    triggerErrorRecovery,
+    triggerFullFeedback,
+  } = useContextualFeedbackContext();
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -147,6 +158,9 @@ const UploadReplayPage = () => {
       setUploadSuccess(true);
       setUploadedFileUrl(responseData.url);
 
+      // Trigger contextual feedback after upload success
+      triggerReplayUploadSuccess();
+
       // After a short delay to show success, redirect to the replay details page
       // to show processing status
       if (responseData.replayId) {
@@ -162,6 +176,11 @@ const UploadReplayPage = () => {
         setError('Error uploading file');
       }
       setUploadProgress(0);
+
+      // Trigger error recovery feedback after user has time to process the error
+      setTimeout(() => {
+        triggerErrorRecovery();
+      }, 5000);
     } finally {
       setIsUploading(false);
     }
@@ -209,13 +228,6 @@ const UploadReplayPage = () => {
                 <p className="text-sm">Redirecting to processing page...</p>
                 <div className="mt-2">
                   <Progress value={100} className="h-1" />
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <QuickFeedback
-                    context="replay-upload"
-                    label="How was the upload experience?"
-                    variant="helpful"
-                  />
                 </div>
               </AlertDescription>
             </Alert>
@@ -379,6 +391,22 @@ const UploadReplayPage = () => {
           )}
         </CardFooter>
       </Card>
+
+      {/* Contextual Feedback Prompt */}
+      {activePrompt && (
+        <ContextualPrompt
+          context={activePrompt.context}
+          message={activePrompt.message}
+          onDismiss={dismissPrompt}
+          onOpenFullFeedback={() => {
+            // Trigger the global FeedbackWidget to open with the contextual context
+            if (activePrompt) {
+              triggerFullFeedback(activePrompt.context);
+            }
+            completePrompt();
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -23,11 +23,15 @@ import { RecommendationResult, Player } from '../types/spotify';
 interface SongRecommendationsProps {
   replayData: any;
   className?: string;
+  onMusicRecommendationsViewed?: () => void;
+  onSpotifyIntegrationUsed?: () => void;
 }
 
 export default function SongRecommendations({
   replayData,
   className,
+  onMusicRecommendationsViewed,
+  onSpotifyIntegrationUsed,
 }: SongRecommendationsProps) {
   const [recommendations, setRecommendations] =
     useState<RecommendationResult | null>(null);
@@ -90,6 +94,9 @@ export default function SongRecommendations({
           title: 'Recommendations Generated!',
           description: `Found ${result.recommendations.length} songs for ${playerName}`,
         });
+
+        // Trigger contextual feedback after recommendations are loaded
+        onMusicRecommendationsViewed?.();
       } else {
         throw new Error(result.error || 'Failed to generate recommendations');
       }
@@ -349,6 +356,8 @@ export default function SongRecommendations({
                           onPlayStateChange={(isPlaying, songIndex) => {
                             if (isPlaying) {
                               setCurrentlyPlaying(songIndex);
+                              // Trigger contextual feedback when user engages with Spotify
+                              onSpotifyIntegrationUsed?.();
                             } else {
                               setCurrentlyPlaying(null);
                             }
