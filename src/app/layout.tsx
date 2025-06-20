@@ -11,11 +11,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
-import { languageTag } from '@/paraglide/runtime.js';
 import ResumeTracker from '@/components/ResumeTracker';
 import { AuthSuccessHandler } from '@/app/login/client';
 import ErrorBoundary from '@/components/error-boundary';
 import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
+import { ContextualFeedbackProvider } from '@/contexts/ContextualFeedbackContext';
 
 export const generateMetadata = (): Metadata => ({
   metadataBase: new URL('https://rocket-league-music.vercel.app/'),
@@ -90,20 +90,22 @@ const RootLayout = ({ children }: PropsWithChildren) => {
       <html lang="en" suppressHydrationWarning>
         <body className={cn('min-h-screen font-sans', fonts)}>
           <ThemeProvider attribute="class">
-            <ErrorBoundary>
-              <Suspense fallback={null}>
-                <AuthSuccessHandler />
-              </Suspense>
-              <Navbar />
-              <ResumeTracker />
-              {children}
-              <Analytics />
-              <SpeedInsights />
-              <FeedbackWidget />
-              {/* <Footer /> */}
-              {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
-              <Toaster />
-            </ErrorBoundary>
+            <ContextualFeedbackProvider>
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <AuthSuccessHandler />
+                </Suspense>
+                <Navbar />
+                <ResumeTracker />
+                {children}
+                <Analytics />
+                <SpeedInsights />
+                <FeedbackWidget />
+                {/* <Footer /> */}
+                {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
+                <Toaster />
+              </ErrorBoundary>
+            </ContextualFeedbackProvider>
           </ThemeProvider>
         </body>
       </html>
