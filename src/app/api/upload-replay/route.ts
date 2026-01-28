@@ -184,15 +184,22 @@ export async function POST(request: NextRequest) {
         .eq('id', replayRecord.id);
     }
 
-    // Return success response with file details
+    // Fetch the current status from DB to ensure we return accurate data
+    const { data: currentReplay } = await supabase
+      .from('replays')
+      .select('status')
+      .eq('id', replayRecord.id)
+      .single();
+
+    // Return success response with file details and current status
     return NextResponse.json({
-      message: 'File uploaded successfully',
+      message: 'File uploaded and sent for processing',
       fileName: file.name,
       fileSize: file.size,
       path: storageData?.path || null,
       url: fileUrl,
       replayId: replayRecord.id,
-      status: 'uploaded',
+      status: currentReplay?.status || 'processing',
     });
   } catch (error: any) {
     console.error('Upload error:', error);

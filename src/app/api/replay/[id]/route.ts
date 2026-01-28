@@ -88,24 +88,40 @@ export async function GET(
         const processingTime =
           new Date().getTime() - new Date(replay.updated_at).getTime();
         if (processingTime > 2 * 60 * 1000 && replay.ballchasing_id) {
-          // Check status from ballchasing.com
-          try {
-            return await checkBallchasingStatus(supabase, replay);
-          } catch (error: any) {
-            // On error, still return the current status
-            console.error('Error checking ballchasing status:', error);
-            return NextResponse.json({
-              message: 'Replay is being processed by ballchasing.com',
-              status: 'processing',
-              replay: {
-                id: replay.id,
-                fileName: replay.file_name,
-                ballchasingId: replay.ballchasing_id,
-                visibility: replay.visibility,
-                createdAt: replay.created_at,
-              },
-            });
+          // Throttle: only check ballchasing if not checked in last 30 seconds
+          const lastChecked = replay.last_checked_at
+            ? new Date(replay.last_checked_at).getTime()
+            : 0;
+          const timeSinceLastCheck = Date.now() - lastChecked;
+          const throttleMs = 30 * 1000; // 30 seconds
+
+          if (timeSinceLastCheck > throttleMs) {
+            // Atomically claim the check to prevent race conditions
+            const thirtySecondsAgo = new Date(
+              Date.now() - throttleMs
+            ).toISOString();
+            const { data: claimed } = await supabase
+              .from('replays')
+              .update({ last_checked_at: new Date().toISOString() })
+              .eq('id', replay.id)
+              .or(
+                `last_checked_at.is.null,last_checked_at.lt.${thirtySecondsAgo}`
+              )
+              .select()
+              .single();
+
+            if (claimed) {
+              // We claimed the check, proceed to call ballchasing API
+              try {
+                return await checkBallchasingStatus(supabase, replay);
+              } catch (error: any) {
+                console.error('Error checking ballchasing status:', error);
+                // Fall through to return current status
+              }
+            }
+            // Another request already claimed the check, return current status
           }
+          // Throttled: return current status without calling ballchasing API
         }
 
         return NextResponse.json({

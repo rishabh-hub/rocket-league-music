@@ -1,7 +1,7 @@
 // components/SongRecommendations.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,16 @@ export default function SongRecommendations({
   const [error, setError] = useState<string>('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const { toast } = useToast();
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup: abort any in-flight requests when component unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Extract players from replay data
   const getPlayersFromReplay = (): Player[] => {
@@ -62,6 +72,12 @@ export default function SongRecommendations({
     playerId: string,
     playerName: string
   ) => {
+    // Cancel any previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     setError('');
 
@@ -73,10 +89,14 @@ export default function SongRecommendations({
         },
         body: JSON.stringify({
           player_id: playerId,
-          replay_data: replayData?.metrics || null, // Send actual replay data
+          replay_data: replayData?.metrics || null,
           top_n: 5,
         }),
+        signal: abortControllerRef.current.signal,
       });
+
+      // Check if request was aborted before processing response
+      if (abortControllerRef.current.signal.aborted) return;
 
       if (!response.ok) {
         throw new Error(
@@ -86,8 +106,11 @@ export default function SongRecommendations({
 
       const result: RecommendationResult = await response.json();
 
+      // Check again before state updates
+      if (abortControllerRef.current.signal.aborted) return;
+
       if (result.success) {
-        console.log('API Response:', result); // Log the entire response for debugging purposes
+        console.log('API Response:', result);
         setRecommendations(result);
         setSelectedPlayer({ id: playerId, name: playerName });
         toast({
@@ -101,6 +124,9 @@ export default function SongRecommendations({
         throw new Error(result.error || 'Failed to generate recommendations');
       }
     } catch (err) {
+      // Don't show error for aborted requests
+      if (err instanceof Error && err.name === 'AbortError') return;
+
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
@@ -110,11 +136,20 @@ export default function SongRecommendations({
         description: errorMessage,
       });
     } finally {
-      setLoading(false);
+      // Only update loading state if not aborted
+      if (!abortControllerRef.current?.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
   const testWithSampleData = async () => {
+    // Cancel any previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     setError('');
 
@@ -128,14 +163,21 @@ export default function SongRecommendations({
           player_id: 'ce45140fcd644755b01660aa2dc6977b',
           top_n: 3,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
+      // Check if request was aborted before processing response
+      if (abortControllerRef.current.signal.aborted) return;
+
       if (!response.ok) {
-        console.error('API request failed:', response.status); // Log the status code for debugging purposes
+        console.error('API request failed:', response.status);
         throw new Error(`API request failed: ${response.status}`);
       }
 
       const result: RecommendationResult = await response.json();
+
+      // Check again before state updates
+      if (abortControllerRef.current.signal.aborted) return;
 
       if (result.success) {
         setRecommendations(result);
@@ -145,13 +187,16 @@ export default function SongRecommendations({
           description: `Using sample replay data`,
         });
       } else {
-        console.error('API request failed:', response.status); // Log the status code for debugging purposes
+        console.error('API request failed:', response.status);
         throw new Error(
           result.error || 'Failed to generate sample recommendations'
         );
       }
     } catch (err) {
-      console.error('API request failed:', err); // Log the status code for debugging purposes
+      // Don't show error for aborted requests
+      if (err instanceof Error && err.name === 'AbortError') return;
+
+      console.error('API request failed:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
@@ -161,7 +206,10 @@ export default function SongRecommendations({
         description: errorMessage,
       });
     } finally {
-      setLoading(false);
+      // Only update loading state if not aborted
+      if (!abortControllerRef.current?.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
