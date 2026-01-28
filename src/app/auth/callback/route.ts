@@ -1,13 +1,23 @@
+// ABOUTME: OAuth callback handler for Supabase authentication.
+// ABOUTME: Exchanges auth code for session and redirects user to intended destination.
 import { NextResponse } from 'next/server';
 
-// The client you created from the Server-Side Auth instructions
 import { createClient } from '@/utils/supabase/server';
+
+function isValidRedirectPath(path: string): boolean {
+  if (!path || typeof path !== 'string') return false;
+  if (path.includes('//')) return false;
+  if (path.includes('://')) return false;
+  if (path.includes('..')) return false;
+  if (!path.startsWith('/')) return false;
+  return true;
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/';
+  const nextParam = searchParams.get('next');
+  const next = nextParam && isValidRedirectPath(nextParam) ? nextParam : '/';
 
   console.log(`########## NEXT IS ${next} ${origin} ###########`);
 

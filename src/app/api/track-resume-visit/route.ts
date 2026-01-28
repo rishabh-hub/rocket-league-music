@@ -1,15 +1,33 @@
-// app/api/track-resume-visit/route.ts
+// ABOUTME: API endpoint to track and notify when someone visits the app from a resume link.
+// ABOUTME: Sends an email notification with visitor details (IP, user agent, referrer).
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const NOTIFICATION_EMAIL =
-  process.env.NOTIFICATION_EMAIL || 'rishabh.1056@gmail.com';
+const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL;
 
-export async function POST(request: Request) {
+function escapeHtml(str: string | undefined | null): string {
+  if (!str) return 'Not available';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export async function POST() {
   try {
+    if (!NOTIFICATION_EMAIL) {
+      console.error('NOTIFICATION_EMAIL environment variable is not set');
+      return NextResponse.json(
+        { error: 'Notification email not configured' },
+        { status: 500 }
+      );
+    }
+
     const cookieStore = cookies();
     const visitorDataCookie = (await cookieStore).get('resume_visitor_data');
 
@@ -37,12 +55,12 @@ export async function POST(request: Request) {
         'Resume Link Visit' + (visitorData.email ? ' - User Logged In' : ''),
       html: `
         <h1>Someone visited your app from your resume!</h1>
-        <p><strong>Time:</strong> ${new Date(visitorData.timestamp).toLocaleString()}</p>
-        <p><strong>IP Address:</strong> ${visitorData.ip || 'Not available'}</p>
-        <p><strong>User Agent:</strong> ${visitorData.userAgent || 'Not available'}</p>
-        <p><strong>Referrer:</strong> ${visitorData.referrer || 'Not available'}</p>
-        <p><strong>Path:</strong> ${visitorData.path || '/'}</p>
-        ${visitorData.loggedIn ? `<p><strong>User Email:</strong> ${visitorData.email}</p>` : '<p><strong>Login Status:</strong> Not logged in</p>'}
+        <p><strong>Time:</strong> ${escapeHtml(new Date(visitorData.timestamp).toLocaleString())}</p>
+        <p><strong>IP Address:</strong> ${escapeHtml(visitorData.ip)}</p>
+        <p><strong>User Agent:</strong> ${escapeHtml(visitorData.userAgent)}</p>
+        <p><strong>Referrer:</strong> ${escapeHtml(visitorData.referrer)}</p>
+        <p><strong>Path:</strong> ${escapeHtml(visitorData.path || '/')}</p>
+        ${visitorData.loggedIn ? `<p><strong>User Email:</strong> ${escapeHtml(visitorData.email)}</p>` : '<p><strong>Login Status:</strong> Not logged in</p>'}
       `,
     });
 

@@ -1,9 +1,20 @@
-// src/app / api / webhooks / stripe / route.ts;
+// ABOUTME: Stripe webhook handler for processing subscription events.
+// ABOUTME: Handles checkout completion, subscription updates, and cancellations.
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 import { createClient } from '@/utils/supabase/server';
+
+class WebhookHandlerError extends Error {
+  constructor(
+    message: string,
+    public originalError: unknown
+  ) {
+    super(message);
+    this.name = 'WebhookHandlerError';
+  }
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -33,18 +44,26 @@ export async function POST(request: Request) {
   }
 
   // Handle the event
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    await handleCheckoutSessionCompleted(session);
-  } else if (event.type === 'customer.subscription.updated') {
-    const subscription = event.data.object as Stripe.Subscription;
-    await handleSubscriptionUpdated(subscription);
-  } else if (event.type === 'customer.subscription.deleted') {
-    const subscription = event.data.object as Stripe.Subscription;
-    await handleSubscriptionDeleted(subscription);
-  }
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await handleCheckoutSessionCompleted(session);
+    } else if (event.type === 'customer.subscription.updated') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await handleSubscriptionUpdated(subscription);
+    } else if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await handleSubscriptionDeleted(subscription);
+    }
 
-  return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error('Webhook handler error:', error);
+    return NextResponse.json(
+      { error: 'Webhook handler failed' },
+      { status: 500 }
+    );
+  }
 }
 
 async function handleCheckoutSessionCompleted(
@@ -54,8 +73,7 @@ async function handleCheckoutSessionCompleted(
   const userId = session.metadata?.userId;
 
   if (!userId) {
-    console.error('No userId found in session metadata');
-    return;
+    throw new WebhookHandlerError('No userId found in session metadata', null);
   }
 
   // Retrieve the subscription details
@@ -90,7 +108,7 @@ async function handleCheckoutSessionCompleted(
   });
 
   if (error) {
-    console.error('Error inserting subscription:', error);
+    throw new WebhookHandlerError('Error inserting subscription', error);
   }
 }
 
@@ -123,7 +141,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   });
 
   if (error) {
-    console.error('Error updating subscription:', error);
+    throw new WebhookHandlerError('Error updating subscription', error);
   }
 }
 
@@ -140,6 +158,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     .eq('id', subscription.id);
 
   if (error) {
-    console.error('Error updating deleted subscription:', error);
+    throw new WebhookHandlerError('Error updating deleted subscription', error);
   }
 }

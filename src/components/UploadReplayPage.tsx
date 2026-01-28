@@ -1,6 +1,15 @@
+// ABOUTME: Client component for uploading Rocket League replay files.
+// ABOUTME: Handles drag-and-drop, validation, progress tracking, and redirect to processing page.
 'use client';
 
-import { ChangeEvent, DragEvent, useCallback, useState } from 'react';
+import {
+  ChangeEvent,
+  DragEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   AlertCircle,
   CheckCircle,
@@ -52,8 +61,18 @@ const UploadReplayPage = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
-  // const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [visibility, setVisibility] = useState<string>('public');
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Contextual feedback hook
   const {
@@ -118,12 +137,20 @@ const UploadReplayPage = () => {
     setError('');
     setUploadProgress(0);
 
+    // Clear any existing interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
     // Simulate progress for better UX (actual progress is not available from fetch API)
-    const progressInterval = setInterval(() => {
+    progressIntervalRef.current = setInterval(() => {
       setUploadProgress((prev) => {
         const newProgress = prev + 5;
         if (newProgress >= 90) {
-          clearInterval(progressInterval);
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+          }
           return 90; // Hold at 90% until complete
         }
         return newProgress;
@@ -142,7 +169,10 @@ const UploadReplayPage = () => {
         body: formData,
       });
 
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       setUploadProgress(100);
 
       if (!response.ok) {
@@ -169,6 +199,10 @@ const UploadReplayPage = () => {
         }, 1500);
       }
     } catch (err: unknown) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       // Type guard for Error objects
       if (err instanceof Error) {
         setError(err.message);
