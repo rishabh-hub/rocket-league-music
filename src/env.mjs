@@ -35,9 +35,8 @@ export const env = createEnv({
     PYTHON_API_URL: z.string().url().min(1),
     BALLCHASING_API_KEY: z.string().min(1),
 
-    // Spotify
-    SPOTIFY_CLIENT_ID: z.string().min(1),
-    SPOTIFY_CLIENT_SECRET: z.string().min(1),
+    // Spotify (optional - app handles missing credentials gracefully)
+    SPOTIFY_CLIENT_SECRET: z.string().optional(),
 
     // Optional services
     RESEND_API_KEY: z.string().optional(),
@@ -48,6 +47,7 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url().min(1),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_SPOTIFY_CLIENT_ID: z.string().optional(),
   },
   runtimeEnv: {
     // Database
@@ -82,7 +82,7 @@ export const env = createEnv({
     BALLCHASING_API_KEY: process.env.BALLCHASING_API_KEY,
 
     // Spotify
-    SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
+    NEXT_PUBLIC_SPOTIFY_CLIENT_ID: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
 
     // Optional services
