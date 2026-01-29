@@ -101,8 +101,6 @@ const RootLayout = ({ children }: PropsWithChildren) => {
                 <Analytics />
                 <SpeedInsights />
                 <FeedbackWidget />
-                {/* <Footer /> */}
-                {/* //TODO: Fix or remove footer. If fix, then addsomething related to your branding(like my github,linked,email etc) */}
                 <Toaster />
               </ErrorBoundary>
             </ContextualFeedbackProvider>

@@ -50,17 +50,3 @@ export interface Player {
   assists?: number;
   mvp?: boolean;
 }
-
-export interface SpotifyTrackData {
-  id: string;
-  name: string;
-  artists: string[];
-  album: {
-    name: string;
-    images: Array<{ url: string; height: number; width: number }>;
-  };
-  preview_url: string | null;
-  duration_ms: number;
-  external_urls: { spotify: string };
-  popularity: number;
-}
