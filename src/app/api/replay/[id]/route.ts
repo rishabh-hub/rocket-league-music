@@ -144,24 +144,9 @@ export async function GET(
           // Throttled: return current status without calling ballchasing API
         }
 
-        // Debug info to understand why we're not checking ballchasing
-        const debugInfo = {
-          processingTimeMs: processingTime,
-          processingTimeSec: Math.round(processingTime / 1000),
-          hasBallchasingId: !!replay.ballchasing_id,
-          lastCheckedAt: replay.last_checked_at,
-          timeSinceLastCheckSec: replay.last_checked_at
-            ? Math.round((Date.now() - new Date(replay.last_checked_at).getTime()) / 1000)
-            : null,
-          throttleTriggered: replay.last_checked_at
-            ? (Date.now() - new Date(replay.last_checked_at).getTime()) <= 30000
-            : false,
-        };
-
         return NextResponse.json({
           message: 'Replay is being processed by ballchasing.com',
           status: 'processing',
-          debug: debugInfo,
           replay: {
             id: replay.id,
             fileName: replay.file_name,
@@ -282,9 +267,6 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
 
     const replayData = response.data;
 
-    // Log the ballchasing response for debugging
-    console.log('Ballchasing API response status:', replayData.status, 'for replay:', replay.ballchasing_id);
-
     // Check if the replay has been processed
     // Ballchasing returns: "ok" (processed), "pending" (processing), "failed" (error)
     if (replayData.status === 'pending') {
@@ -292,7 +274,6 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
       return NextResponse.json({
         message: 'Replay is still being processed by ballchasing.com',
         status: 'processing',
-        ballchasingStatus: 'pending',
         replay: {
           id: replay.id,
           fileName: replay.file_name,
@@ -323,12 +304,10 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
         },
       });
     } else if (replayData.status !== 'ok') {
-      // Unknown status - log and return processing
-      console.error('Unknown ballchasing status:', replayData.status);
+      // Unknown status - return processing and let it retry
       return NextResponse.json({
-        message: 'Unknown ballchasing status',
+        message: 'Replay is being processed by ballchasing.com',
         status: 'processing',
-        ballchasingStatus: replayData.status,
         replay: {
           id: replay.id,
           fileName: replay.file_name,
@@ -339,10 +318,7 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
       });
     }
 
-    // Status is 'ok' - replay is fully processed
-    console.log('Replay processed successfully, extracting metrics');
-
-    // Extract metrics
+    // Status is 'ok' - replay is fully processed, extract metrics
     const metrics = extractMetrics(replayData);
 
     // Update the replay record with metrics and status
