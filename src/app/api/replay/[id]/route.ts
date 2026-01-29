@@ -84,10 +84,40 @@ export async function GET(
         });
 
       case 'processing':
-        // Check if replay has been processing for more than 2 minutes
+        // Check if replay has been processing for more than 30 seconds
         const processingTime =
           new Date().getTime() - new Date(replay.updated_at).getTime();
-        if (processingTime > 2 * 60 * 1000 && replay.ballchasing_id) {
+
+        // If no ballchasing_id after 30 seconds, upload failed
+        if (processingTime > 30 * 1000 && !replay.ballchasing_id) {
+          await supabase
+            .from('replays')
+            .update({
+              status: 'failed',
+              metrics: {
+                error:
+                  'Upload to ballchasing.com did not complete. Please try uploading again.',
+                failure_reason: 'missing_ballchasing_id',
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', replay.id);
+
+          return NextResponse.json({
+            message: 'Replay upload failed',
+            status: 'failed',
+            error:
+              'Upload to ballchasing.com did not complete. Please try uploading again.',
+            replay: {
+              id: replay.id,
+              fileName: replay.file_name,
+              visibility: replay.visibility,
+              createdAt: replay.created_at,
+            },
+          });
+        }
+
+        if (processingTime > 30 * 1000 && replay.ballchasing_id) {
           // Throttle: only check ballchasing if not checked in last 30 seconds
           const lastChecked = replay.last_checked_at
             ? new Date(replay.last_checked_at).getTime()
@@ -319,11 +349,54 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
   } catch (error: any) {
     console.error('Error checking ballchasing status:', error);
 
-    // Don't update status on error, just return current status
+    const checkFailures = (replay.metrics?.check_failures || 0) + 1;
+
+    // After 10 failures (~5 min of polling), mark as failed
+    if (checkFailures >= 10) {
+      await supabase
+        .from('replays')
+        .update({
+          status: 'failed',
+          metrics: {
+            ...replay.metrics,
+            error: `Failed to check ballchasing.com after ${checkFailures} attempts: ${error.message}`,
+            check_failures: checkFailures,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replay.id);
+
+      return NextResponse.json({
+        message: 'Replay status check failed',
+        status: 'failed',
+        error: `Unable to retrieve status from ballchasing.com: ${error.message}`,
+        replay: {
+          id: replay.id,
+          fileName: replay.file_name,
+          ballchasingId: replay.ballchasing_id,
+          visibility: replay.visibility,
+          createdAt: replay.created_at,
+        },
+      });
+    }
+
+    // Update failure count
+    await supabase
+      .from('replays')
+      .update({
+        metrics: {
+          ...replay.metrics,
+          check_failures: checkFailures,
+          last_check_error: error.message,
+        },
+      })
+      .eq('id', replay.id);
+
     return NextResponse.json({
-      message: 'Error checking replay status',
-      status: replay.status,
+      message: 'Temporarily unable to check replay status',
+      status: 'processing',
       error: error.message,
+      checkFailures: checkFailures,
       replay: {
         id: replay.id,
         fileName: replay.file_name,
