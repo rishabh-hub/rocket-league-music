@@ -85,8 +85,9 @@ export async function GET(
 
       case 'processing':
         // Check if replay has been processing for more than 30 seconds
+        // Use created_at (stable) instead of updated_at (gets reset on updates)
         const processingTime =
-          new Date().getTime() - new Date(replay.updated_at).getTime();
+          new Date().getTime() - new Date(replay.created_at).getTime();
 
         // If no ballchasing_id after 30 seconds, upload failed
         if (processingTime > 30 * 1000 && !replay.ballchasing_id) {
@@ -279,14 +280,8 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
 
     // Check if the replay has been processed
     if (replayData.status === 'pending') {
-      await supabase
-        .from('replays')
-        .update({
-          status: 'processing',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', replay.id);
-
+      // Don't update anything - just return current status
+      // Updating updated_at here was causing the 30s timer to reset on every check
       return NextResponse.json({
         message: 'Replay is still being processed by ballchasing.com',
         status: 'processing',
