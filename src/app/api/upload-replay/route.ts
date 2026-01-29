@@ -190,7 +190,8 @@ export async function POST(request: NextRequest) {
             }
           );
 
-          if (statusResponse.data.status === 'ok') {
+          const bcStatus = statusResponse.data.status;
+          if (bcStatus !== 'pending' && bcStatus !== 'failed') {
             // Already processed - extract metrics and mark ready
             const metrics = extractMetrics(statusResponse.data);
             await supabase
@@ -198,6 +199,16 @@ export async function POST(request: NextRequest) {
               .update({
                 status: 'ready',
                 metrics: metrics,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', replayRecord.id);
+          } else if (bcStatus === 'failed') {
+            // Ballchasing failed to process
+            await supabase
+              .from('replays')
+              .update({
+                status: 'failed',
+                metrics: { error: 'Replay processing failed on ballchasing.com' },
                 updated_at: new Date().toISOString(),
               })
               .eq('id', replayRecord.id);
