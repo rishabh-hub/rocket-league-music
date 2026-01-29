@@ -127,37 +127,41 @@ export async function GET(
           const throttleMs = 30 * 1000; // 30 seconds
 
           if (timeSinceLastCheck > throttleMs) {
-            // Atomically claim the check to prevent race conditions
-            const thirtySecondsAgo = new Date(
-              Date.now() - throttleMs
-            ).toISOString();
-            const { data: claimed } = await supabase
+            // Update last_checked_at first (simple throttle, no complex atomic claim)
+            await supabase
               .from('replays')
               .update({ last_checked_at: new Date().toISOString() })
-              .eq('id', replay.id)
-              .or(
-                `last_checked_at.is.null,last_checked_at.lt.${thirtySecondsAgo}`
-              )
-              .select()
-              .single();
+              .eq('id', replay.id);
 
-            if (claimed) {
-              // We claimed the check, proceed to call ballchasing API
-              try {
-                return await checkBallchasingStatus(supabase, replay);
-              } catch (error: any) {
-                console.error('Error checking ballchasing status:', error);
-                // Fall through to return current status
-              }
+            // Call ballchasing API to check status
+            try {
+              return await checkBallchasingStatus(supabase, replay);
+            } catch (error: any) {
+              console.error('Error checking ballchasing status:', error);
+              // Fall through to return current status
             }
-            // Another request already claimed the check, return current status
           }
           // Throttled: return current status without calling ballchasing API
         }
 
+        // Debug info to understand why we're not checking ballchasing
+        const debugInfo = {
+          processingTimeMs: processingTime,
+          processingTimeSec: Math.round(processingTime / 1000),
+          hasBallchasingId: !!replay.ballchasing_id,
+          lastCheckedAt: replay.last_checked_at,
+          timeSinceLastCheckSec: replay.last_checked_at
+            ? Math.round((Date.now() - new Date(replay.last_checked_at).getTime()) / 1000)
+            : null,
+          throttleTriggered: replay.last_checked_at
+            ? (Date.now() - new Date(replay.last_checked_at).getTime()) <= 30000
+            : false,
+        };
+
         return NextResponse.json({
           message: 'Replay is being processed by ballchasing.com',
           status: 'processing',
+          debug: debugInfo,
           replay: {
             id: replay.id,
             fileName: replay.file_name,
@@ -278,13 +282,17 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
 
     const replayData = response.data;
 
+    // Log the ballchasing response for debugging
+    console.log('Ballchasing API response status:', replayData.status, 'for replay:', replay.ballchasing_id);
+
     // Check if the replay has been processed
+    // Ballchasing returns: "ok" (processed), "pending" (processing), "failed" (error)
     if (replayData.status === 'pending') {
-      // Don't update anything - just return current status
-      // Updating updated_at here was causing the 30s timer to reset on every check
+      // Still processing on ballchasing - return current status
       return NextResponse.json({
         message: 'Replay is still being processed by ballchasing.com',
         status: 'processing',
+        ballchasingStatus: 'pending',
         replay: {
           id: replay.id,
           fileName: replay.file_name,
@@ -314,7 +322,25 @@ async function checkBallchasingStatus(supabase: any, replay: any) {
           createdAt: replay.created_at,
         },
       });
+    } else if (replayData.status !== 'ok') {
+      // Unknown status - log and return processing
+      console.error('Unknown ballchasing status:', replayData.status);
+      return NextResponse.json({
+        message: 'Unknown ballchasing status',
+        status: 'processing',
+        ballchasingStatus: replayData.status,
+        replay: {
+          id: replay.id,
+          fileName: replay.file_name,
+          ballchasingId: replay.ballchasing_id,
+          visibility: replay.visibility,
+          createdAt: replay.created_at,
+        },
+      });
     }
+
+    // Status is 'ok' - replay is fully processed
+    console.log('Replay processed successfully, extracting metrics');
 
     // Extract metrics
     const metrics = extractMetrics(replayData);
