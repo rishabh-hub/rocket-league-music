@@ -1,4 +1,5 @@
-// app/replays/page.tsx
+// ABOUTME: Page displaying the user's uploaded Rocket League replay files.
+// ABOUTME: Shows replay list with status badges and navigation to detail views.
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -24,22 +25,11 @@ import {
   ArrowLeft,
   Upload,
   FileUp,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-
-interface Replay {
-  id: string;
-  file_name: string;
-  status: string;
-  ballchasing_id?: string;
-  visibility: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Replay } from '@/types/replay';
+import { StatusBadge } from '@/components/StatusBadge';
 
 export default function ReplaysPage() {
   const router = useRouter();
@@ -85,56 +75,6 @@ export default function ReplaysPage() {
 
     fetchReplays();
   }, [router, supabase]);
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
-  // Get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'uploaded':
-        return (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-          >
-            <Clock className="h-3 w-3" /> Uploaded
-          </Badge>
-        );
-      case 'processing':
-        return (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-          >
-            <Loader2 className="h-3 w-3 animate-spin" /> Processing
-          </Badge>
-        );
-      case 'ready':
-        return (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-          >
-            <CheckCircle2 className="h-3 w-3" /> Ready
-          </Badge>
-        );
-      case 'failed':
-        return (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-          >
-            <AlertTriangle className="h-3 w-3" /> Failed
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   return (
     <div className="container py-8 px-4">
@@ -210,11 +150,15 @@ export default function ReplaysPage() {
                     <TableCell className="font-medium">
                       {replay.file_name}
                     </TableCell>
-                    <TableCell>{getStatusBadge(replay.status)}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={replay.status} />
+                    </TableCell>
                     <TableCell className="capitalize">
                       {replay.visibility}
                     </TableCell>
-                    <TableCell>{formatDate(replay.created_at)}</TableCell>
+                    <TableCell>
+                      {new Date(replay.created_at).toLocaleString()}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"

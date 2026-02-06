@@ -1,10 +1,11 @@
-// app/replays/[id]/page.tsx
+// ABOUTME: Page displaying detailed replay analysis with tabs for different stat views.
+// ABOUTME: Shows processing status, game stats, player stats, and song recommendations.
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { useToast } from '@/components/ui/use-toast'; // Changed from sonner to shadcn toast
+import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,16 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import SongRecommendations from '@/components/SongRecommendations';
 import { useContextualFeedbackContext } from '@/contexts/ContextualFeedbackContext';
 import { ContextualPrompt } from '@/components/feedback/ContextualPrompt';
-
-interface ReplayData {
-  id: string;
-  fileName: string;
-  ballchasingId?: string;
-  visibility: string;
-  createdAt: string;
-  metrics?: any;
-  user_id?: string;
-}
+import { ReplayData } from '@/types/replay';
 
 export default function ReplayDetailsPage() {
   const { id } = useParams() as { id: string };

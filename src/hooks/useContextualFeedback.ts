@@ -226,7 +226,6 @@ export function useContextualFeedback() {
       if (activePrompt && sessionRef.current) {
         const contextToDismiss = context || activePrompt.context;
 
-
         // Mark as dismissed for this session
         sessionRef.current.dismissed.add(contextToDismiss);
 

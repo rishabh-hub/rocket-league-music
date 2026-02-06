@@ -1,5 +1,7 @@
-// app/api/spotify/track/route.ts
+// ABOUTME: API endpoint for fetching Spotify track metadata.
+// ABOUTME: Retrieves track details including name, artists, album, and preview URL.
 import { NextRequest, NextResponse } from 'next/server';
+import { getSpotifyAccessToken } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,27 +32,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get Spotify access token - construct the URL properly
-    const baseUrl =
-      process.env.NEXTAUTH_URL ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:3000');
-
-    const authResponse = await fetch(`${baseUrl}/api/spotify/auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!authResponse.ok) {
-      const errorText = await authResponse.text();
-      console.error('Auth response error:', errorText);
-      throw new Error(`Failed to get Spotify token: ${authResponse.status}`);
-    }
-
-    const authData = await authResponse.json();
+    // Get Spotify access token directly using the shared utility
+    const authData = await getSpotifyAccessToken();
     const { access_token } = authData;
 
     // Fetch track data from Spotify

@@ -31,12 +31,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Technology Stack
 - **Framework**: Next.js 15 with App Router
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js with GitHub provider
-- **Storage**: Supabase for file storage (replay files)
+- **Database**: PostgreSQL via Supabase
+- **Authentication**: Supabase Auth with GitHub OAuth
+- **Storage**: Supabase Storage (replay files)
 - **Payments**: Stripe integration
 - **Internationalization**: Paraglide-JS for i18n
 - **UI**: TailwindCSS + Shadcn/ui components
+
+### Supabase Project
+- **Project Name**: rocket-league-music
+- **Project ID**: `uayllztbeghcncaaqxxq`
+- **Region**: ap-south-1 (Mumbai)
+- **Database**: PostgreSQL 15.8
 
 ### Key Application Features
 This is a **Rocket League Music Recommendation System** that:
@@ -64,7 +70,7 @@ This is a **Rocket League Music Recommendation System** that:
 - **Stripe**: Payment processing
 
 ### Database Schema Notes
-- Users are authenticated via NextAuth with GitHub
+- Users are authenticated via Supabase Auth with GitHub OAuth
 - Stripe customer integration for payments
 - Environment variables in env.mjs need updating (see TODO comment)
 
