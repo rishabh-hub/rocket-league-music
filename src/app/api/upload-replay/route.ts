@@ -1,4 +1,5 @@
-// app/api/upload-replay/route.ts
+// ABOUTME: API route for uploading Rocket League replay files.
+// ABOUTME: Stores files in Supabase and submits to ballchasing.com for analysis.
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import fs from 'fs';
@@ -7,6 +8,7 @@ import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import FormData from 'form-data';
+import { extractMetrics } from '@/utils/extractMetrics';
 
 // Increase max duration for handling larger files and external API calls
 export const maxDuration = 60;
@@ -208,7 +210,9 @@ export async function POST(request: NextRequest) {
               .from('replays')
               .update({
                 status: 'failed',
-                metrics: { error: 'Replay processing failed on ballchasing.com' },
+                metrics: {
+                  error: 'Replay processing failed on ballchasing.com',
+                },
                 updated_at: new Date().toISOString(),
               })
               .eq('id', replayRecord.id);
@@ -266,88 +270,4 @@ export async function POST(request: NextRequest) {
       }
     }
   }
-}
-
-function extractMetrics(replayData: any) {
-  // Extract the metrics from the ballchasing API response
-  const metrics = {
-    title: replayData.title || '',
-    map_name: replayData.map_name || '',
-    duration: replayData.duration || 0,
-    date: replayData.date || '',
-    playlist: replayData.playlist_name || '',
-    overtime: replayData.overtime || false,
-    overtime_seconds: replayData.overtime_seconds || 0,
-    season: replayData.season || '',
-    teams: {} as Record<string, any>,
-  };
-
-  // Process team data
-  for (const team_color of ['blue', 'orange']) {
-    const team = replayData[team_color] || {};
-    const teamStats = team.stats || {};
-    const teamCore = teamStats.core || {};
-
-    metrics.teams[team_color] = {
-      name:
-        team.name || team_color.charAt(0).toUpperCase() + team_color.slice(1),
-      goals: teamCore.goals || 0,
-      shots: teamCore.shots || 0,
-      saves: teamCore.saves || 0,
-      assists: teamCore.assists || 0,
-      score: teamCore.score || 0,
-      shooting_percentage: teamCore.shooting_percentage || 0,
-      players: [],
-    };
-
-    // Process player data
-    for (const player of team.players || []) {
-      const playerStats = player.stats || {};
-      const playerCore = playerStats.core || {};
-      const playerBoost = playerStats.boost || {};
-      const playerMovement = playerStats.movement || {};
-      const playerPositioning = playerStats.positioning || {};
-
-      const playerData = {
-        name: player.name || '',
-        platform: player.id?.platform || '',
-        id: player.id?.id || '',
-        mvp: player.mvp || false,
-        car_name: player.car_name || '',
-        car_id: player.car_id || 0,
-        score: playerCore.score || 0,
-        goals: playerCore.goals || 0,
-        assists: playerCore.assists || 0,
-        saves: playerCore.saves || 0,
-        shots: playerCore.shots || 0,
-        shooting_percentage: playerCore.shooting_percentage || 0,
-        boost: {
-          avg_amount: playerBoost.avg_amount || 0,
-          amount_collected: playerBoost.amount_collected || 0,
-          amount_stolen: playerBoost.amount_stolen || 0,
-          time_zero_boost_percent: playerBoost.percent_zero_boost || 0,
-          time_full_boost_percent: playerBoost.percent_full_boost || 0,
-        },
-        movement: {
-          avg_speed: playerMovement.avg_speed || 0,
-          total_distance: playerMovement.total_distance || 0,
-          time_supersonic_speed_percent:
-            playerMovement.percent_supersonic_speed || 0,
-        },
-        positioning: {
-          time_defensive_third_percent:
-            playerPositioning.percent_defensive_third || 0,
-          time_neutral_third_percent:
-            playerPositioning.percent_neutral_third || 0,
-          time_offensive_third_percent:
-            playerPositioning.percent_offensive_third || 0,
-          time_behind_ball_percent: playerPositioning.percent_behind_ball || 0,
-        },
-      };
-
-      metrics.teams[team_color].players.push(playerData);
-    }
-  }
-
-  return metrics;
 }

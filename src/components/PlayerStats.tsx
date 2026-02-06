@@ -1,16 +1,7 @@
-// components/PlayerStats.tsx
+// ABOUTME: Component for displaying detailed player statistics with charts and tables.
+// ABOUTME: Supports core stats, boost analysis, and positioning metrics view modes.
 import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData,
-} from 'chart.js';
+import { ChartOptions, ChartData } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -30,84 +21,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-interface Player {
-  name: string;
-  platform?: string;
-  id?: string;
-  mvp: boolean;
-  car_name?: string;
-  car_id?: number;
-  score: number;
-  goals: number;
-  assists: number;
-  saves: number;
-  shots: number;
-  shooting_percentage: number;
-  boost: {
-    avg_amount: number;
-    amount_collected: number;
-    amount_stolen: number;
-    time_zero_boost_percent: number;
-    time_full_boost_percent: number;
-  };
-  movement: {
-    avg_speed: number;
-    total_distance: number;
-    time_supersonic_speed_percent: number;
-  };
-  positioning: {
-    time_defensive_third_percent: number;
-    time_neutral_third_percent: number;
-    time_offensive_third_percent: number;
-    time_behind_ball_percent: number;
-  };
-}
-
-interface Team {
-  name: string;
-  goals: number;
-  shots: number;
-  saves: number;
-  assists: number;
-  score: number;
-  shooting_percentage: number;
-  players: Player[];
-}
-
-interface ReplayMetrics {
-  title: string;
-  map_name: string;
-  duration: number;
-  date: string;
-  playlist: string;
-  overtime?: boolean;
-  overtime_seconds?: number;
-  season?: string;
-  teams: {
-    blue: Team;
-    orange: Team;
-  };
-}
-
-interface ReplayData {
-  id: string;
-  fileName: string;
-  ballchasingId?: string;
-  visibility: string;
-  createdAt: string;
-  metrics?: ReplayMetrics;
-}
+import '@/lib/chartjs';
+import { ReplayData } from '@/types/replay';
+import { getTeamColors } from '@/utils/chartColors';
 
 interface PlayerStatsProps {
   replayData: ReplayData;
@@ -247,28 +163,10 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
       .reduce((prev, curr) => (prev ? prev[curr] : null), obj);
   };
 
-  // Get chart colors based on theme
-  const getTeamColor = (team: string) => {
-    if (team === 'blue') {
-      return {
-        background:
-          theme === 'dark'
-            ? 'rgba(59, 130, 246, 0.8)'
-            : 'rgba(59, 130, 246, 0.7)',
-        border:
-          theme === 'dark' ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)',
-      };
-    } else {
-      return {
-        background:
-          theme === 'dark'
-            ? 'rgba(249, 115, 22, 0.8)'
-            : 'rgba(249, 115, 22, 0.7)',
-        border:
-          theme === 'dark' ? 'rgba(249, 115, 22, 1)' : 'rgba(234, 88, 12, 1)',
-      };
-    }
-  };
+  // Helper to get team colors
+  const isDark = theme === 'dark';
+  const getPlayerTeamColor = (team: string) =>
+    getTeamColors(team as 'blue' | 'orange', isDark);
 
   // Prepare chart data
   const selectedStatConfig = statConfig.stats.find(
@@ -283,8 +181,10 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
         data: allPlayers.map((p) =>
           getValueByPath(p, selectedStatConfig?.path || '')
         ),
-        backgroundColor: allPlayers.map((p) => getTeamColor(p.team).background),
-        borderColor: allPlayers.map((p) => getTeamColor(p.team).border),
+        backgroundColor: allPlayers.map(
+          (p) => getPlayerTeamColor(p.team).background
+        ),
+        borderColor: allPlayers.map((p) => getPlayerTeamColor(p.team).border),
         borderWidth: 1,
       },
     ],

@@ -1,28 +1,14 @@
+// ABOUTME: Public showcase page displaying community-shared Rocket League replays.
+// ABOUTME: Shows featured public replays with game summaries and navigation to details.
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   ArrowLeft,
-  Clock,
-  CheckCircle2,
   AlertTriangle,
   Loader2,
   TrendingUp,
@@ -30,17 +16,8 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-
-interface Replay {
-  id: string;
-  file_name: string;
-  status: string;
-  ballchasing_id?: string;
-  visibility: string;
-  created_at: string;
-  updated_at: string;
-  metrics?: any;
-}
+import { Replay } from '@/types/replay';
+import { formatDate } from '@/utils/formatDate';
 
 export default function ShowcasePage() {
   const router = useRouter();
@@ -79,33 +56,6 @@ export default function ShowcasePage() {
 
     fetchShowcaseReplays();
   }, [supabase]);
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  // Get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ready':
-        return (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-          >
-            <CheckCircle2 className="h-3 w-3" /> Ready
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   // Get game summary from the metrics if available
   const getGameSummary = (replay: Replay) => {

@@ -1,16 +1,7 @@
-// components/ReplayStats.tsx
+// ABOUTME: Component for displaying replay game summary and team comparison charts.
+// ABOUTME: Shows final score, duration, map, team stats, MVP, and replay info.
 import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData,
-} from 'chart.js';
+import { ChartOptions, ChartData } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import {
   Card,
@@ -29,84 +20,10 @@ import {
 import { Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-interface Player {
-  name: string;
-  platform?: string;
-  id?: string;
-  mvp: boolean;
-  car_name?: string;
-  car_id?: number;
-  score: number;
-  goals: number;
-  assists: number;
-  saves: number;
-  shots: number;
-  shooting_percentage: number;
-  boost: {
-    avg_amount: number;
-    amount_collected: number;
-    amount_stolen: number;
-    time_zero_boost_percent: number;
-    time_full_boost_percent: number;
-  };
-  movement: {
-    avg_speed: number;
-    total_distance: number;
-    time_supersonic_speed_percent: number;
-  };
-  positioning: {
-    time_defensive_third_percent: number;
-    time_neutral_third_percent: number;
-    time_offensive_third_percent: number;
-    time_behind_ball_percent: number;
-  };
-}
-
-interface Team {
-  name: string;
-  goals: number;
-  shots: number;
-  saves: number;
-  assists: number;
-  score: number;
-  shooting_percentage: number;
-  players: Player[];
-}
-
-interface ReplayMetrics {
-  title: string;
-  map_name: string;
-  duration: number;
-  date: string;
-  playlist: string;
-  overtime?: boolean;
-  overtime_seconds?: number;
-  season?: string;
-  teams: {
-    blue: Team;
-    orange: Team;
-  };
-}
-
-interface ReplayData {
-  id: string;
-  fileName: string;
-  ballchasingId?: string;
-  visibility: string;
-  createdAt: string;
-  metrics?: ReplayMetrics;
-}
+import '@/lib/chartjs';
+import { ReplayData, Team } from '@/types/replay';
+import { formatDateTime } from '@/utils/formatDate';
+import { getTeamColors } from '@/utils/chartColors';
 
 interface ReplayStatsProps {
   replayData: ReplayData;
@@ -165,28 +82,9 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
   ];
 
   // Get chart colors based on theme
-  const getChartColors = () => {
-    return {
-      blue: {
-        background:
-          theme === 'dark'
-            ? 'rgba(59, 130, 246, 0.8)'
-            : 'rgba(59, 130, 246, 0.7)',
-        border:
-          theme === 'dark' ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)',
-      },
-      orange: {
-        background:
-          theme === 'dark'
-            ? 'rgba(249, 115, 22, 0.8)'
-            : 'rgba(249, 115, 22, 0.7)',
-        border:
-          theme === 'dark' ? 'rgba(249, 115, 22, 1)' : 'rgba(234, 88, 12, 1)',
-      },
-    };
-  };
-
-  const chartColors = getChartColors();
+  const isDark = theme === 'dark';
+  const blueColors = getTeamColors('blue', isDark);
+  const orangeColors = getTeamColors('orange', isDark);
 
   const chartData: ChartData<'bar'> = {
     labels: ['Blue Team', 'Orange Team'],
@@ -198,11 +96,8 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
           blueTeam[selectedMetric as keyof Team] as number,
           orangeTeam[selectedMetric as keyof Team] as number,
         ],
-        backgroundColor: [
-          chartColors.blue.background,
-          chartColors.orange.background,
-        ],
-        borderColor: [chartColors.blue.border, chartColors.orange.border],
+        backgroundColor: [blueColors.background, orangeColors.background],
+        borderColor: [blueColors.border, orangeColors.border],
         borderWidth: 1,
       },
     ],
@@ -247,23 +142,11 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
     },
   };
 
-  // Format duration
+  // Format duration as mm:ss
   const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  // Format date
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   return (
@@ -485,7 +368,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Date</p>
-              <p className="font-medium">{formatDate(metrics.date)}</p>
+              <p className="font-medium">{formatDateTime(metrics.date)}</p>
             </div>
             {replayData.ballchasingId && (
               <div>

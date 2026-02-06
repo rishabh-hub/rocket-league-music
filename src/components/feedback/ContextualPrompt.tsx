@@ -142,7 +142,7 @@ export function ContextualPrompt({
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               {/* Context Icon */}
-              <div className="text-2xl flex-shrink-0 mt-1">
+              <div className="text-2xl shrink-0 mt-1">
                 {getContextIcon(context)}
               </div>
 
