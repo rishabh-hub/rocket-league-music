@@ -63,10 +63,11 @@ export default function ReplaysPage() {
           return;
         }
 
-        // Fetch replays from the database
+        // Fetch replays from the database (filtered by current user)
         const { data, error } = await supabase
           .from('replays')
           .select('*')
+          .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
 
         if (error) {
