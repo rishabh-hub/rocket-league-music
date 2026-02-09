@@ -1,4 +1,5 @@
-// components/SongRecommendations.tsx
+// ABOUTME: Component that fetches and displays music recommendations for replay players.
+// ABOUTME: Supports both deterministic (metrics/categories) and agentic (game_reading) profiles.
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -17,8 +18,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SpotifySongCard from './SpotifySongCard';
-// Replace the interface definitions at the top with this import:
-import { RecommendationResult, Player } from '../types/spotify';
+import {
+  RecommendationResult,
+  Player,
+  isAgenticProfile,
+  isDeterministicProfile,
+} from '../types/spotify';
 
 interface SongRecommendationsProps {
   replayData: any;
@@ -338,49 +343,110 @@ export default function SongRecommendations({
                     Recommendations for {selectedPlayer?.name}
                   </h3>
 
-                  {/* Performance Categories */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    {Object.entries(recommendations.profile.categories).map(
-                      ([key, value]) => (
-                        <div key={key} className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            {getCategoryIcon(key)}
-                            <span className="text-sm font-medium capitalize">
-                              {key}
-                            </span>
-                          </div>
-                          <Badge
-                            className={getCategoryColor(value)}
-                            variant="secondary"
-                          >
-                            {value}
-                          </Badge>
-                        </div>
-                      )
-                    )}
-                  </div>
+                  {/* Deterministic Profile: Performance Categories + Metrics */}
+                  {isDeterministicProfile(recommendations.profile) && (
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        {Object.entries(recommendations.profile.categories).map(
+                          ([key, value]) => (
+                            <div key={key} className="text-center">
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                {getCategoryIcon(key)}
+                                <span className="text-sm font-medium capitalize">
+                                  {key}
+                                </span>
+                              </div>
+                              <Badge
+                                className={getCategoryColor(value)}
+                                variant="secondary"
+                              >
+                                {value}
+                              </Badge>
+                            </div>
+                          )
+                        )}
+                      </div>
 
-                  {/* Metrics */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
-                    <div className="text-center">
-                      <div className="font-medium">Intensity Score</div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        {recommendations.profile.metrics.intensity_score}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
+                        <div className="text-center">
+                          <div className="font-medium">Intensity Score</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {recommendations.profile.metrics.intensity_score}
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium">Performance Score</div>
+                          <div className="text-2xl font-bold text-green-600">
+                            {recommendations.profile.metrics.performance_score}
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium">Teamwork Factor</div>
+                          <div className="text-2xl font-bold text-purple-600">
+                            {recommendations.profile.metrics.teamwork_factor}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Agentic Profile: Game Reading */}
+                  {isAgenticProfile(recommendations.profile) && (
+                    <div className="space-y-4 mb-4">
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm leading-relaxed">
+                          {recommendations.profile.game_reading.narrative}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-sm font-medium text-muted-foreground mb-1">
+                            Player Archetype
+                          </div>
+                          <div className="text-lg font-semibold">
+                            {
+                              recommendations.profile.game_reading
+                                .player_archetype
+                            }
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-muted-foreground mb-1">
+                            Emotional Arc
+                          </div>
+                          <div className="text-lg font-semibold">
+                            {recommendations.profile.game_reading.emotional_arc}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground mb-2">
+                          Key Observations
+                        </div>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          {recommendations.profile.game_reading.key_observations.map(
+                            (observation, idx) => (
+                              <li key={idx}>{observation}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground mb-1">
+                          Song Search Direction
+                        </div>
+                        <p className="text-sm">
+                          {
+                            recommendations.profile.game_reading
+                              .song_search_direction
+                          }
+                        </p>
                       </div>
                     </div>
-                    <div className="text-center">
-                      <div className="font-medium">Performance Score</div>
-                      <div className="text-2xl font-bold text-green-600">
-                        {recommendations.profile.metrics.performance_score}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium">Teamwork Factor</div>
-                      <div className="text-2xl font-bold text-purple-600">
-                        {recommendations.profile.metrics.teamwork_factor}
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Song Recommendations */}

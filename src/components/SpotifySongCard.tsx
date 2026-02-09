@@ -1,4 +1,5 @@
-// components/SpotifySongCard.tsx
+// ABOUTME: Card component for displaying a song recommendation with Spotify embed.
+// ABOUTME: Supports both deterministic and agentic pipeline song fields.
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -50,9 +51,7 @@ export default function SpotifySongCard({
 
   // Helper function to check if a mood/theme matches the criteria
   const isMatchedCriteria = (item: string): boolean => {
-    const matchedText = (song.matched_criteria_details || [])
-      .join(' ')
-      .toLowerCase();
+    const matchedText = (song.matched_criteria || []).join(' ').toLowerCase();
     return matchedText.includes(item.toLowerCase());
   };
 
@@ -168,7 +167,7 @@ export default function SpotifySongCard({
           <div className="flex flex-wrap gap-1 mb-3">
             {/* Moods */}
             {(song.moods || []).slice(0, 4).map((mood, idx) => {
-              const isMatched = (song.matched_criteria_details || [])
+              const isMatched = (song.matched_criteria || [])
                 .join(' ')
                 .toLowerCase()
                 .includes(mood.toLowerCase());
@@ -187,7 +186,7 @@ export default function SpotifySongCard({
 
             {/* Themes */}
             {(song.themes || []).slice(0, 3).map((theme, idx) => {
-              const isMatched = (song.matched_criteria_details || [])
+              const isMatched = (song.matched_criteria || [])
                 .join(' ')
                 .toLowerCase()
                 .includes(theme.toLowerCase());
@@ -204,10 +203,29 @@ export default function SpotifySongCard({
               );
             })}
           </div>
+          {/* Agentic LLM Fields */}
+          {song.llm_vibe && (
+            <p className="text-xs italic text-muted-foreground mb-2">
+              {song.llm_vibe}
+            </p>
+          )}
+          {song.llm_game_moments && song.llm_game_moments.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {song.llm_game_moments.map((moment, idx) => (
+                <Badge
+                  key={`moment-${idx}`}
+                  variant="outline"
+                  className="text-xs"
+                >
+                  {moment}
+                </Badge>
+              ))}
+            </div>
+          )}
           {/* Match Criteria */}
-          {(song.matched_criteria_details || []).length > 0 && (
+          {(song.matched_criteria || []).length > 0 && (
             <div className="text-xs text-muted-foreground mb-3">
-              Matched: {song.matched_criteria_details.slice(0, 2).join(', ')}
+              Matched: {song.matched_criteria.slice(0, 2).join(', ')}
             </div>
           )}
           {/* Actions */}
