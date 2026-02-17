@@ -30,6 +30,10 @@
       "prettier --write"
     ]
   },
+  "browserslist": [
+    "defaults and supports es6-module",
+    "not dead"
+  ],
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@inlang/paraglide-next": "0.7.9",
@@ -56,7 +60,6 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
     "form-data": "^4.0.2",
-    "framer-motion": "^12.15.0",
     "fs-extra": "^11.3.0",
     "lucide-react": "^0.473.0",
     "motion": "^12.11.1",

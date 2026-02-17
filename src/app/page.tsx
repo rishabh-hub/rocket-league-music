@@ -112,6 +112,7 @@ export default function HomePage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 quality={75}
                 priority
+                fetchPriority="high"
               />
               {/* Gradient overlay that adapts to theme */}
               <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>
@@ -198,6 +199,7 @@ export default function HomePage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 quality={75}
                 priority
+                fetchPriority="high"
               />
               {/* Gradient overlay that adapts to theme */}
               <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>

@@ -14,8 +14,8 @@ import { cn } from '@/lib/utils';
 import ResumeTracker from '@/components/ResumeTracker';
 import { AuthSuccessHandler } from '@/app/login/client';
 import ErrorBoundary from '@/components/error-boundary';
-import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 import { ContextualFeedbackProvider } from '@/contexts/ContextualFeedbackContext';
+import { FeedbackWidgetLazy } from '@/components/feedback/FeedbackWidgetLazy';
 
 export const generateMetadata = (): Metadata => ({
   metadataBase: new URL(process.env.APP_URL || 'https://rocket-league-music.vercel.app/'),
@@ -88,6 +88,9 @@ const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <LanguageProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="preconnect" href="https://o4509433100959744.ingest.de.sentry.io" />
+        </head>
         <body className={cn('min-h-screen font-sans', fonts)}>
           <ThemeProvider attribute="class">
             <ContextualFeedbackProvider>
@@ -100,7 +103,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
                 {children}
                 <Analytics />
                 <SpeedInsights />
-                <FeedbackWidget />
+                <FeedbackWidgetLazy />
                 <Toaster />
               </ErrorBoundary>
               <script

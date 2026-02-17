@@ -15,7 +15,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Replay } from '@/types/replay';
 import { formatDate } from '@/utils/formatDate';
 

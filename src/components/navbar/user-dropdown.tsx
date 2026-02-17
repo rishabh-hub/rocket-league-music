@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -54,7 +53,8 @@ export const UserDropdown = ({
 
       const { sessionId } = await res.json();
 
-      // Load Stripe
+      // Dynamic import — only fetches Stripe SDK when user clicks
+      const { loadStripe } = await import('@stripe/stripe-js');
       const stripe = await loadStripe(
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
       );
