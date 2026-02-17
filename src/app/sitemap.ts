@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 import { env } from '@/env.mjs';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = env.APP_URL;
+  const baseUrl = env.APP_URL?.replace(/\/$/, '');
   return [
     {
       url: baseUrl || '/',

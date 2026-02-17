@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/payment/', '/replays', '/auth/', '/error', '/login'],
       },
     ],
-    sitemap: `${env.APP_URL}/sitemap.xml`,
+    sitemap: `${env.APP_URL?.replace(/\/$/, '')}/sitemap.xml`,
   };
 }

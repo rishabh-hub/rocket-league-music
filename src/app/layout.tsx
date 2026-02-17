@@ -48,7 +48,7 @@ export const generateMetadata = (): Metadata => ({
     apple: '/favicon/apple-touch-icon.png',
   },
   verification: {
-    google: '77bb0b1137e072ca.html',
+    google: process.env.GOOGLE_SITE_VERIFICATION_ID || 'atXGBO6IOwPwTBTE-7Ht1DBAxDxG8XmNXKcbUynK6VQ',
   },
   openGraph: {
     url: siteConfig.url(),
