@@ -18,7 +18,7 @@ import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 import { ContextualFeedbackProvider } from '@/contexts/ContextualFeedbackContext';
 
 export const generateMetadata = (): Metadata => ({
-  metadataBase: new URL('https://rocket-league-music.vercel.app/'),
+  metadataBase: new URL(process.env.APP_URL || 'https://rocket-league-music.vercel.app/'),
   title: {
     default:
       'ReplayRhythms | Rocket League Replay Analysis with Musical Matching',
@@ -103,6 +103,31 @@ const RootLayout = ({ children }: PropsWithChildren) => {
                 <FeedbackWidget />
                 <Toaster />
               </ErrorBoundary>
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'WebApplication',
+                    name: 'ReplayRhythms',
+                    url: 'https://rocket-league-music.vercel.app',
+                    description:
+                      'ReplayRhythms analyzes your Rocket League gameplay and recommends personalized music that matches your unique playstyle.',
+                    applicationCategory: 'GameApplication',
+                    operatingSystem: 'Web',
+                    offers: {
+                      '@type': 'Offer',
+                      price: '0',
+                      priceCurrency: 'USD',
+                    },
+                    creator: {
+                      '@type': 'Person',
+                      name: 'Rishabh Singh',
+                      url: 'https://www.linkedin.com/in/rishabh-singh-a1726b1a6/',
+                    },
+                  }),
+                }}
+              />
             </ContextualFeedbackProvider>
           </ThemeProvider>
         </body>

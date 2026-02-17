@@ -1,0 +1,25 @@
+# ReplayRhythms
+
+> A web application that analyzes Rocket League gameplay replay files and recommends personalized music based on your unique playstyle and match statistics.
+
+## What is ReplayRhythms?
+
+ReplayRhythms connects your Rocket League gameplay to music. Upload a `.replay` file, and the app analyzes your stats (aggression, speed, boost usage, aerial frequency, teamwork) using the ballchasing.com API and a Python-based recommendation engine to suggest songs that match your playstyle.
+
+## Key Pages
+
+- [Home](https://rocket-league-music.vercel.app/): Overview and entry point to the app
+- [Replay Showcase](https://rocket-league-music.vercel.app/showcase): Browse community-shared replays and their music recommendations
+- [Upload Replay](https://rocket-league-music.vercel.app/upload-replay): Upload a .replay file to get your personalized music recommendations
+
+## How It Works
+
+1. User uploads a Rocket League .replay file
+2. File is submitted to ballchasing.com for parsing and stat extraction
+3. Gameplay metrics (speed, aggression, boost usage, positioning) are analyzed
+4. A Python recommendation engine matches the playstyle to music tracks
+5. Optionally connect Spotify to save recommendations as a playlist
+
+## Tech Stack
+
+Built with Next.js 15, Supabase (auth + storage), ballchasing.com API, Spotify API, and Stripe for payments.

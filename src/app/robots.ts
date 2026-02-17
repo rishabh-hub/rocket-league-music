@@ -4,10 +4,13 @@ import { env } from '@/env.mjs';
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: ['/', '/showcase', '/upload-replay'],
+        disallow: ['/api/', '/payment/', '/replays', '/auth/', '/error', '/login'],
+      },
+    ],
     sitemap: `${env.APP_URL}/sitemap.xml`,
   };
 }
