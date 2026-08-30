@@ -1,3 +1,5 @@
+// ABOUTME: Switch that flips a replay between private and public showcase visibility.
+// ABOUTME: Writes directly to the replays table and toasts the result.
 'use client';
 
 import { useState } from 'react';
@@ -54,8 +56,8 @@ export default function VisibilityToggle({
       console.error('Error updating visibility:', error);
       toast({
         variant: 'destructive',
-        title: 'Update failed',
-        description: 'Could not update replay visibility',
+        title: 'Could not change visibility',
+        description: 'Try again in a moment.',
       });
     } finally {
       setIsUpdating(false);
@@ -81,12 +83,12 @@ export default function VisibilityToggle({
               >
                 {isPublic ? (
                   <>
-                    <Globe className="h-4 w-4 text-green-500" />
+                    <Globe className="h-4 w-4 text-muted-foreground" />
                     <span>Public</span>
                   </>
                 ) : (
                   <>
-                    <Lock className="h-4 w-4 text-amber-500" />
+                    <Lock className="h-4 w-4 text-muted-foreground" />
                     <span>Private</span>
                   </>
                 )}
@@ -95,8 +97,8 @@ export default function VisibilityToggle({
           </TooltipTrigger>
           <TooltipContent>
             {isPublic
-              ? 'This replay is visible in the public showcase'
-              : 'Make this replay visible in the public showcase'}
+              ? 'Anyone with the link can see this replay in the showcase.'
+              : 'Only you can see this replay.'}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

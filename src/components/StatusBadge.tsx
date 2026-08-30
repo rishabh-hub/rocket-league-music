@@ -1,5 +1,5 @@
 // ABOUTME: Reusable badge component for displaying replay processing status.
-// ABOUTME: Renders appropriate colors and icons for uploaded, processing, ready, and failed states.
+// ABOUTME: Renders appropriate colors and icons for uploaded, processing, pending, ready, and failed states.
 import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -16,25 +16,26 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       return (
         <Badge
           variant="outline"
-          className="flex items-center gap-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+          className="flex items-center gap-1 border-transparent bg-muted text-muted-foreground"
         >
-          <Clock className="h-3 w-3" /> Uploaded
+          <Clock className="h-3 w-3" /> Queued
         </Badge>
       );
     case 'processing':
+    case 'pending':
       return (
         <Badge
           variant="outline"
-          className="flex items-center gap-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+          className="flex items-center gap-1 border-transparent bg-primary/10 text-primary ring-1 ring-inset ring-primary/25"
         >
-          <Loader2 className="h-3 w-3 animate-spin" /> Processing
+          <Loader2 className="h-3 w-3 animate-spin" /> Reading stats
         </Badge>
       );
     case 'ready':
       return (
         <Badge
           variant="outline"
-          className="flex items-center gap-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+          className="flex items-center gap-1 border-transparent bg-primary/15 text-primary ring-1 ring-inset ring-primary/30"
         >
           <CheckCircle2 className="h-3 w-3" /> Ready
         </Badge>
@@ -43,12 +44,16 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       return (
         <Badge
           variant="outline"
-          className="flex items-center gap-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+          className="flex items-center gap-1 border-transparent bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/25"
         >
           <AlertTriangle className="h-3 w-3" /> Failed
         </Badge>
       );
     default:
-      return <Badge variant="outline">{status}</Badge>;
+      return (
+        <Badge variant="outline" className="capitalize">
+          {status}
+        </Badge>
+      );
   }
 }

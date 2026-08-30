@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Supabase storage error:', error);
       return NextResponse.json(
-        { message: 'Failed to store file' },
+        { message: 'Could not save your file. Try again.' },
         { status: 500 }
       );
     }
@@ -94,7 +94,10 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error('Database insert error:', insertError);
       return NextResponse.json(
-        { message: 'Failed to record upload in database' },
+        {
+          message:
+            'We saved your file but could not start the analysis. Try uploading again.',
+        },
         { status: 500 }
       );
     }

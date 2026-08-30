@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Music, Maximize2, Minimize2 } from 'lucide-react';
+import { ExternalLink, Maximize2, Minimize2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Song } from '../types/spotify';
 
@@ -55,33 +55,20 @@ export default function SpotifySongCard({
     return matchedText.includes(item.toLowerCase());
   };
 
-  // Helper function to get badge styling based on match status
-  const getBadgeVariant = (item: string, isTheme: boolean = false) => {
-    if (isMatchedCriteria(item)) {
-      return isTheme ? 'default' : 'default'; // Highlighted style for matches
-    }
-    return isTheme ? 'secondary' : 'outline'; // Normal style for non-matches
-  };
-
-  const getBadgeClassName = (item: string, isTheme: boolean = false) => {
-    if (isMatchedCriteria(item)) {
-      return isTheme
-        ? 'text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200'
-        : 'text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200';
-    }
-    return 'text-xs';
-  };
+  // Matched items lead each list so a match is never the entry that gets cut
+  const matchedFirst = (items: string[]): string[] =>
+    [...items].sort(
+      (a, b) => Number(isMatchedCriteria(b)) - Number(isMatchedCriteria(a))
+    );
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
-    // Notify parent about play state when expanding
-    if (!isExpanded && onPlayStateChange) {
-      onPlayStateChange(true, index);
-    }
+    // Notify parent in both directions so the now-playing highlight clears
+    onPlayStateChange?.(!isExpanded, index);
   };
 
-  // Also update your getSpotifyEmbedUrl function to force dark theme:
-  const getSpotifyEmbedUrl = (trackId: string, compact: boolean = true) => {
+  // Spotify embed URL; theme=0 pins the player to dark so it sits on the app canvas.
+  const getSpotifyEmbedUrl = (trackId: string) => {
     const baseUrl = 'https://open.spotify.com/embed/track/';
     const params = new URLSearchParams({
       utm_source: 'generator',
@@ -91,42 +78,59 @@ export default function SpotifySongCard({
     return `${baseUrl}${trackId}?${params.toString()}`;
   };
 
+  const listCap = 3;
+  const moods = matchedFirst(song.moods || []);
+  const themes = matchedFirst(song.themes || []);
+  const moments = song.llm_game_moments || [];
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.24,
+        delay: Math.min(index, 5) * 0.04,
+        ease: [0.32, 0.72, 0, 1],
+      }}
       className="group"
     >
       <Card
-        className={`transition-all duration-300 hover:shadow-lg ${
-          isPlaying ? 'ring-2 ring-green-500 shadow-lg' : ''
+        className={`transition-colors duration-instant hover:border-foreground/25 ${
+          isPlaying ? 'border-foreground/25 bg-muted/30' : ''
         }`}
       >
-        <div className="p-4">
+        <div className="p-4 space-y-3">
           {/* Song Info Header */}
-          <div className="flex justify-between items-start mb-3">
-            <div className="min-w-0 grow">
-              <h5 className="font-semibold truncate">{song.title}</h5>
-              <p className="text-muted-foreground text-sm truncate">
-                by {song.artist}
-              </p>
-            </div>
-
-            <div className="text-right shrink-0 ml-4">
-              <div className="text-sm font-medium">
-                Match: {song.match_score}%
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-start gap-4">
+              <div className="min-w-0 grow">
+                <h5 className="font-semibold truncate" title={song.title}>
+                  {song.title}
+                </h5>
+                <p
+                  className="text-muted-foreground text-sm truncate"
+                  title={song.artist}
+                >
+                  {song.artist}
+                </p>
               </div>
-              <div className="text-xs text-muted-foreground">
+
+              <div className="text-xs text-muted-foreground tabular-nums shrink-0">
                 {song.bpm} BPM • {normalizeEnergy(song.energy)}
               </div>
             </div>
+
+            {song.llm_vibe && (
+              <p className="text-sm leading-relaxed text-foreground/80">
+                {song.llm_vibe}
+              </p>
+            )}
           </div>
 
           {/* Single Animated Spotify Player with Border Fix */}
           {trackId && (
             <motion.div
-              className="mb-3 overflow-hidden rounded-xl bg-gray-900 dark:bg-gray-800 shadow-lg"
+              className="overflow-hidden rounded-lg bg-surface border border-border/50"
               animate={{
                 height: isExpanded ? 352 : 152,
               }}
@@ -136,82 +140,68 @@ export default function SpotifySongCard({
               }}
             >
               <iframe
-                src={getSpotifyEmbedUrl(trackId, !isExpanded)}
+                src={getSpotifyEmbedUrl(trackId)}
                 width="100%"
-                height={isExpanded ? 352 : 152}
+                height="100%"
                 frameBorder="0"
                 allowFullScreen
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
-                className="block border-none bg-transparent"
+                className="block h-full w-full border-none bg-transparent"
                 title={`Spotify player for ${song.title} by ${song.artist}`}
-                style={{
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  background: 'transparent',
-                }}
-                key={`player-${trackId}-${isExpanded}`} // Force reload when size changes
               />
             </motion.div>
           )}
           {/* No Spotify URL Fallback */}
           {!trackId && (
-            <div className="mb-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
-              <Music className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                No Spotify preview available
-              </p>
-            </div>
-          )}
-          {/* Enhanced Moods and Themes */}
-          <div className="flex flex-wrap gap-1 mb-3">
-            {/* Moods */}
-            {(song.moods || []).slice(0, 4).map((mood, idx) => {
-              const isMatched = (song.matched_criteria || [])
-                .join(' ')
-                .toLowerCase()
-                .includes(mood.toLowerCase());
-
-              return (
-                <Badge
-                  key={`mood-${idx}`}
-                  variant={isMatched ? 'default' : 'outline'}
-                  className={`text-xs ${isMatched ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''}`}
-                >
-                  {mood}
-                  {isMatched && <span className="ml-1">✓</span>}
-                </Badge>
-              );
-            })}
-
-            {/* Themes */}
-            {(song.themes || []).slice(0, 3).map((theme, idx) => {
-              const isMatched = (song.matched_criteria || [])
-                .join(' ')
-                .toLowerCase()
-                .includes(theme.toLowerCase());
-
-              return (
-                <Badge
-                  key={`theme-${idx}`}
-                  variant={isMatched ? 'default' : 'secondary'}
-                  className={`text-xs ${isMatched ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600' : ''}`}
-                >
-                  {theme}
-                  {isMatched && <span className="ml-1">★</span>}
-                </Badge>
-              );
-            })}
-          </div>
-          {/* Agentic LLM Fields */}
-          {song.llm_vibe && (
-            <p className="text-xs italic text-muted-foreground mb-2">
-              {song.llm_vibe}
+            <p className="text-sm text-muted-foreground">
+              No preview for this track.
             </p>
           )}
-          {song.llm_game_moments && song.llm_game_moments.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {song.llm_game_moments.map((moment, idx) => (
+          {/* Moods and Themes */}
+          <div className="flex flex-wrap gap-1">
+            {/* Moods */}
+            {moods.slice(0, listCap).map((mood, idx) => (
+              <Badge
+                key={`mood-${idx}`}
+                variant={isMatchedCriteria(mood) ? 'default' : 'outline'}
+                className={`text-xs ${isMatchedCriteria(mood) ? 'bg-primary text-primary-foreground border-primary' : ''}`}
+              >
+                {mood}
+              </Badge>
+            ))}
+            {moods.length > listCap && (
+              <Badge
+                variant="outline"
+                className="text-xs text-muted-foreground"
+              >
+                +{moods.length - listCap}
+              </Badge>
+            )}
+
+            {/* Themes */}
+            {themes.slice(0, listCap).map((theme, idx) => (
+              <Badge
+                key={`theme-${idx}`}
+                variant={isMatchedCriteria(theme) ? 'default' : 'secondary'}
+                className={`text-xs ${isMatchedCriteria(theme) ? 'bg-primary/15 text-primary border-primary/30' : ''}`}
+              >
+                {theme}
+              </Badge>
+            ))}
+            {themes.length > listCap && (
+              <Badge
+                variant="outline"
+                className="text-xs text-muted-foreground"
+              >
+                +{themes.length - listCap}
+              </Badge>
+            )}
+          </div>
+          {/* Game Moments */}
+          {moments.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {moments.slice(0, listCap).map((moment, idx) => (
                 <Badge
                   key={`moment-${idx}`}
                   variant="outline"
@@ -220,12 +210,14 @@ export default function SpotifySongCard({
                   {moment}
                 </Badge>
               ))}
-            </div>
-          )}
-          {/* Match Criteria */}
-          {(song.matched_criteria || []).length > 0 && (
-            <div className="text-xs text-muted-foreground mb-3">
-              Matched: {song.matched_criteria.slice(0, 2).join(', ')}
+              {moments.length > listCap && (
+                <Badge
+                  variant="outline"
+                  className="text-xs text-muted-foreground"
+                >
+                  +{moments.length - listCap}
+                </Badge>
+              )}
             </div>
           )}
           {/* Actions */}
@@ -241,12 +233,12 @@ export default function SpotifySongCard({
                   {isExpanded ? (
                     <>
                       <Minimize2 className="h-3 w-3" />
-                      Compact
+                      Collapse
                     </>
                   ) : (
                     <>
                       <Maximize2 className="h-3 w-3" />
-                      Full Player
+                      Expand
                     </>
                   )}
                 </Button>
@@ -261,30 +253,15 @@ export default function SpotifySongCard({
                     className="flex items-center gap-1"
                   >
                     <ExternalLink className="h-3 w-3" />
-                    Open Spotify
+                    Open in Spotify
                   </a>
                 </Button>
               )}
             </div>
 
-            {/* Song Quality Indicator */}
-            <div className="flex items-center gap-1">
-              {song.match_score >= 80 && (
-                <Badge variant="default" className="text-xs bg-green-500">
-                  Perfect Match
-                </Badge>
-              )}
-              {song.match_score >= 60 && song.match_score < 80 && (
-                <Badge variant="default" className="text-xs bg-yellow-500">
-                  Good Match
-                </Badge>
-              )}
-              {song.match_score < 60 && (
-                <Badge variant="outline" className="text-xs">
-                  Fair Match
-                </Badge>
-              )}
-            </div>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {song.match_score}% match
+            </span>
           </div>
         </div>
       </Card>

@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            'Request timed out. The recommendation service is taking too long to respond.',
+          error: 'This one is taking longer than usual. Try again in a moment.',
         },
         { status: 504 } // Gateway Timeout
       );
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error:
-            'Unable to connect to recommendation service. The service may be starting up - please try again in a moment.',
+            'Could not reach the song matcher. It sleeps when idle — give it about thirty seconds and try again.',
           technical_error: error.message,
         },
         { status: 503 } // Service Unavailable
@@ -149,8 +148,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            'Request timed out. The recommendation service is taking too long to respond.',
+          error: 'This one is taking longer than usual. Try again in a moment.',
         },
         { status: 504 } // Gateway Timeout
       );
@@ -161,7 +159,7 @@ export async function GET(request: NextRequest) {
         {
           success: false,
           error:
-            'Unable to connect to recommendation service. The service may be starting up - please try again in a moment.',
+            'Could not reach the song matcher. It sleeps when idle — give it about thirty seconds and try again.',
           technical_error: error.message,
         },
         { status: 503 }

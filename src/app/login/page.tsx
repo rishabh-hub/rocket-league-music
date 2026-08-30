@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 import { googleOauthLogin, login, signup } from './action';
@@ -15,15 +16,20 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/server';
 
 export const metadata = {
-  title: 'Sign In | ReplayRhythms',
+  title: 'Sign in',
   description:
-    'Sign in to your ReplayRhythms account to upload and analyze Rocket League replays with personalized music recommendations.',
+    'Sign in to upload Rocket League replays and get songs that match your stats.',
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ verify?: string }>;
+}) {
   // Check if user is already logged in, redirect to home if they are
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
+  const params = await searchParams;
 
   if (data.user) {
     redirect('/');
@@ -33,10 +39,29 @@ export default async function LoginPage() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>Sign in to access your account</CardDescription>
+          <Image
+            src="/images/logo.png"
+            alt=""
+            width={40}
+            height={40}
+            className="mb-2 rounded-md"
+          />
+          <CardTitle className="text-foreground text-xl normal-case tracking-tight">
+            Sign in to ReplayRhythms
+          </CardTitle>
+          <CardDescription>
+            Uploading a replay needs an account. It is where your replays, their
+            stats, and the songs they matched live.
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          {params.verify && (
+            <p className="text-muted-foreground mb-4 text-sm">
+              Check your inbox — we sent a confirmation link. Click it, then
+              sign in below.
+            </p>
+          )}
+
           {/* Email/Password form */}
           <form className="space-y-4">
             <div className="space-y-2">
@@ -50,7 +75,7 @@ export default async function LoginPage() {
 
             <div className="flex flex-col gap-2">
               <Button type="submit" formAction={login} className="w-full">
-                Log in
+                Sign in
               </Button>
               <Button
                 type="submit"
@@ -58,7 +83,7 @@ export default async function LoginPage() {
                 variant="outline"
                 className="w-full"
               >
-                Sign up
+                Create account
               </Button>
             </div>
           </form>
@@ -67,10 +92,8 @@ export default async function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background text-muted-foreground px-2">
-                Or continue with
-              </span>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card text-muted-foreground px-2">or</span>
             </div>
           </div>
 

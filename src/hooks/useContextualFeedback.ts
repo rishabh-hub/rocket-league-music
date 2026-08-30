@@ -34,42 +34,42 @@ const DEFAULT_TRIGGERS: Record<FeedbackContext, ContextualTrigger> = {
   'replay-upload-success': {
     context: 'replay-upload-success',
     delayMs: 3000, // 3 seconds after upload success
-    message: '🎉 Great! How was the upload experience?',
+    message: 'Did the upload do what you expected?',
     maxPerSession: 1,
     cooldownMs: 24 * 60 * 60 * 1000, // 24 hours
   },
   'music-recommendations-viewed': {
     context: 'music-recommendations-viewed',
     delayMs: 10000, // 10 seconds after viewing recommendations
-    message: '🎵 What do you think of these music recommendations?',
+    message: 'Do these songs fit the match?',
     maxPerSession: 1,
     cooldownMs: 6 * 60 * 60 * 1000, // 6 hours
   },
   'replay-stats-engagement': {
     context: 'replay-stats-engagement',
     delayMs: 120000, // 2 minutes of viewing stats
-    message: '📊 Found the replay analysis helpful? Let us know!',
+    message: 'Did the stats tell you anything useful?',
     maxPerSession: 1,
     cooldownMs: 12 * 60 * 60 * 1000, // 12 hours
   },
   'spotify-integration-used': {
     context: 'spotify-integration-used',
     delayMs: 5000, // 5 seconds after using Spotify
-    message: '🎧 How was the Spotify integration experience?',
+    message: 'Did the Spotify player work for you?',
     maxPerSession: 1,
     cooldownMs: 24 * 60 * 60 * 1000, // 24 hours
   },
   'error-recovery': {
     context: 'error-recovery',
     delayMs: 8000, // 8 seconds after error recovery
-    message: '💪 We noticed an issue earlier. How can we improve?',
+    message: 'Something went wrong earlier — what happened?',
     maxPerSession: 1,
     cooldownMs: 48 * 60 * 60 * 1000, // 48 hours
   },
   'page-engagement': {
     context: 'page-engagement',
     delayMs: 180000, // 3 minutes on page
-    message: "✨ How's your experience with ReplayRhythms so far?",
+    message: 'Anything here confusing or broken?',
     maxPerSession: 1,
     cooldownMs: 7 * 24 * 60 * 60 * 1000, // 1 week
   },

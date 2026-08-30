@@ -7,15 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Music,
-  Loader2,
-  Zap,
-  Users,
-  Trophy,
-  Target,
-  RefreshCw,
-} from 'lucide-react';
+import { Music, Zap, Users, Trophy, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SpotifySongCard from './SpotifySongCard';
 import {
@@ -104,8 +96,13 @@ export default function SongRecommendations({
       if (abortControllerRef.current.signal.aborted) return;
 
       if (!response.ok) {
+        console.error(
+          'Recommendation request failed:',
+          response.status,
+          response.statusText
+        );
         throw new Error(
-          `API request failed: ${response.status} ${response.statusText}`
+          'Could not reach the song matcher. It sleeps when idle — give it about thirty seconds and try again.'
         );
       }
 
@@ -115,12 +112,11 @@ export default function SongRecommendations({
       if (abortControllerRef.current.signal.aborted) return;
 
       if (result.success) {
-        console.log('API Response:', result);
         setRecommendations(result);
         setSelectedPlayer({ id: playerId, name: playerName });
         toast({
-          title: 'Recommendations Generated!',
-          description: `Found ${result.recommendations.length} songs for ${playerName}`,
+          title: `${result.recommendations.length} tracks for ${playerName}`,
+          description: 'Scored against how they played this match.',
         });
 
         // Trigger contextual feedback after recommendations are loaded
@@ -148,89 +144,18 @@ export default function SongRecommendations({
     }
   };
 
-  const testWithSampleData = async () => {
-    // Cancel any previous in-flight request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          player_id: 'ce45140fcd644755b01660aa2dc6977b',
-          top_n: 3,
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      // Check if request was aborted before processing response
-      if (abortControllerRef.current.signal.aborted) return;
-
-      if (!response.ok) {
-        console.error('API request failed:', response.status);
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const result: RecommendationResult = await response.json();
-
-      // Check again before state updates
-      if (abortControllerRef.current.signal.aborted) return;
-
-      if (result.success) {
-        setRecommendations(result);
-        setSelectedPlayer({ id: 'sample', name: 'Sample Player' });
-        toast({
-          title: 'Sample Recommendations Generated!',
-          description: `Using sample replay data`,
-        });
-      } else {
-        console.error('API request failed:', response.status);
-        throw new Error(
-          result.error || 'Failed to generate sample recommendations'
-        );
-      }
-    } catch (err) {
-      // Don't show error for aborted requests
-      if (err instanceof Error && err.name === 'AbortError') return;
-
-      console.error('API request failed:', err);
-      const errorMessage =
-        err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: errorMessage,
-      });
-    } finally {
-      // Only update loading state if not aborted
-      if (!abortControllerRef.current?.signal.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
       case 'high':
       case 'excellent':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+        return 'bg-primary/20 text-primary border-primary/30';
       case 'medium':
       case 'good':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
+        return 'bg-primary/10 text-primary/90 border-primary/20';
       case 'low':
       case 'poor':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -255,16 +180,14 @@ export default function SongRecommendations({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Music className="h-5 w-5" />
-            Song Recommendations
+            Songs for this match
           </CardTitle>
         </CardHeader>
         <CardContent>
           {/* Player Selection */}
           {players.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-medium mb-3">
-                Select a player to generate recommendations:
-              </h3>
+              <h3 className="font-medium mb-3">Who were you?</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {players.map((player) => (
                   <Button
@@ -284,9 +207,9 @@ export default function SongRecommendations({
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {player.goals || 0}G {player.saves || 0}S{' '}
-                      {player.assists || 0}A
+                    <div className="text-xs text-muted-foreground tabular-nums">
+                      {player.goals || 0} goals · {player.saves || 0} saves ·{' '}
+                      {player.assists || 0} assists
                     </div>
                   </Button>
                 ))}
@@ -294,37 +217,25 @@ export default function SongRecommendations({
             </div>
           )}
 
-          {/* Test Button */}
-          <div className="mb-6">
-            <Button
-              variant="secondary"
-              onClick={testWithSampleData}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-              Test with Sample Data
-            </Button>
-          </div>
-
           {/* Loading State */}
           {loading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Generating recommendations...</span>
-              </div>
+            <div className="space-y-4 mb-6">
+              <p className="text-sm text-muted-foreground">
+                Reading the replay
+              </p>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-[220px] rounded-lg border border-border bg-muted/40 animate-pulse"
+                />
+              ))}
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">{error}</p>
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
@@ -369,21 +280,24 @@ export default function SongRecommendations({
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
                         <div className="text-center">
-                          <div className="font-medium">Intensity Score</div>
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="font-medium">Intensity</div>
+                          <div className="text-2xl font-bold tabular-nums text-foreground">
                             {recommendations.profile.metrics.intensity_score}
+                            /100
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="font-medium">Performance Score</div>
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="font-medium">Performance</div>
+                          <div className="text-2xl font-bold tabular-nums text-foreground">
                             {recommendations.profile.metrics.performance_score}
+                            /100
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="font-medium">Teamwork Factor</div>
-                          <div className="text-2xl font-bold text-purple-600">
+                          <div className="font-medium">Teamwork</div>
+                          <div className="text-2xl font-bold tabular-nums text-foreground">
                             {recommendations.profile.metrics.teamwork_factor}
+                            /100
                           </div>
                         </div>
                       </div>
@@ -402,7 +316,7 @@ export default function SongRecommendations({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <div className="text-sm font-medium text-muted-foreground mb-1">
-                            Player Archetype
+                            How you played
                           </div>
                           <div className="text-lg font-semibold">
                             {
@@ -413,7 +327,7 @@ export default function SongRecommendations({
                         </div>
                         <div>
                           <div className="text-sm font-medium text-muted-foreground mb-1">
-                            Emotional Arc
+                            How the match went
                           </div>
                           <div className="text-lg font-semibold">
                             {recommendations.profile.game_reading.emotional_arc}
@@ -423,27 +337,20 @@ export default function SongRecommendations({
 
                       <div>
                         <div className="text-sm font-medium text-muted-foreground mb-2">
-                          Key Observations
+                          What stood out
                         </div>
-                        <ul className="list-disc list-inside space-y-1 text-sm">
+                        <ul className="space-y-1.5 text-sm text-muted-foreground">
                           {recommendations.profile.game_reading.key_observations.map(
                             (observation, idx) => (
-                              <li key={idx}>{observation}</li>
+                              <li
+                                key={idx}
+                                className="border-l-2 border-primary/40 pl-3"
+                              >
+                                {observation}
+                              </li>
                             )
                           )}
                         </ul>
-                      </div>
-
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground mb-1">
-                          Song Search Direction
-                        </div>
-                        <p className="text-sm">
-                          {
-                            recommendations.profile.game_reading
-                              .song_search_direction
-                          }
-                        </p>
                       </div>
                     </div>
                   )}
@@ -451,13 +358,11 @@ export default function SongRecommendations({
 
                 {/* Song Recommendations */}
                 <div>
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Music className="h-4 w-4" />
-                    Recommended Songs
+                  <div className="mb-3">
                     <Badge variant="outline" className="text-xs">
                       {recommendations.recommendations.length} tracks
                     </Badge>
-                  </h4>
+                  </div>
 
                   {recommendations.recommendations.length > 0 ? (
                     <div className="space-y-4">
@@ -480,26 +385,14 @@ export default function SongRecommendations({
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Music className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No song recommendations found</p>
+                    <div className="rounded-lg border border-dashed border-border py-10 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Nothing matched this match. Try another player from the
+                        list.
+                      </p>
                     </div>
                   )}
                 </div>
-                {/* Metadata */}
-                {recommendations.metadata && (
-                  <div className="mt-4 text-xs text-muted-foreground">
-                    {recommendations.metadata.used_sample_data && (
-                      <p>⚠️ Using sample data for demonstration</p>
-                    )}
-                    <p>
-                      Generated at:{' '}
-                      {new Date(
-                        recommendations.metadata.processed_at
-                      ).toLocaleString()}
-                    </p>
-                  </div>
-                )}
               </motion.div>
             )}
           </AnimatePresence>

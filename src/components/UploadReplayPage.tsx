@@ -17,8 +17,8 @@ import {
   Upload,
   X,
   Loader2,
-  Info,
 } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -26,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -60,11 +59,11 @@ const UploadReplayPage = () => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
-  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<string>('public');
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -75,14 +74,8 @@ const UploadReplayPage = () => {
   }, []);
 
   // Contextual feedback hook
-  const {
-    activePrompt,
-    dismissPrompt,
-    completePrompt,
-    triggerReplayUploadSuccess,
-    triggerErrorRecovery,
-    triggerFullFeedback,
-  } = useContextualFeedbackContext();
+  const { activePrompt, dismissPrompt, completePrompt, triggerFullFeedback } =
+    useContextualFeedbackContext();
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -114,13 +107,17 @@ const UploadReplayPage = () => {
 
     // Check file type - accept only .replay files
     if (!file.name.toLowerCase().endsWith('.replay')) {
-      setError('Only Rocket League replay files (.replay) are accepted');
+      setError(
+        'That is not a .replay file. On Windows they are in Documents\\My Games\\Rocket League\\TAGame\\Demos.'
+      );
       return;
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('File size exceeds 10MB limit');
+      setError(
+        `That replay is ${(file.size / 1024 / 1024).toFixed(1)}MB. The limit is 10MB.`
+      );
       return;
     }
 
@@ -128,10 +125,7 @@ const UploadReplayPage = () => {
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file to upload');
-      return;
-    }
+    if (!file) return;
 
     setIsUploading(true);
     setError('');
@@ -177,19 +171,14 @@ const UploadReplayPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload replay file');
+        throw new Error(
+          errorData.message || 'The upload did not go through. Try again.'
+        );
       }
 
       const responseData: UploadResponse = await response.json();
-      console.log(
-        `File uploaded successfully: ${JSON.stringify(responseData)}`
-      );
 
       setUploadSuccess(true);
-      setUploadedFileUrl(responseData.url);
-
-      // Trigger contextual feedback after upload success
-      triggerReplayUploadSuccess();
 
       // After a short delay to show success, redirect to the replay details page
       // to show processing status
@@ -207,14 +196,11 @@ const UploadReplayPage = () => {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Error uploading file');
+        setError(
+          'The upload did not go through. Check your connection and press Upload replay again — your file is still selected.'
+        );
       }
       setUploadProgress(0);
-
-      // Trigger error recovery feedback after user has time to process the error
-      setTimeout(() => {
-        triggerErrorRecovery();
-      }, 5000);
     } finally {
       setIsUploading(false);
     }
@@ -228,49 +214,34 @@ const UploadReplayPage = () => {
   };
 
   return (
-    <div className="container flex min-h-screen items-center justify-center py-8">
-      <Card className="w-full max-w-md">
+    <div className="container max-w-md px-4 py-8">
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Upload Replay File
+          <CardTitle className="text-2xl font-medium tracking-tight">
+            Upload a replay
           </CardTitle>
-          <CardDescription>
-            Upload your Rocket League replay file for analysis on
-            ballchasing.com
-          </CardDescription>
         </CardHeader>
 
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="size-4" />
-              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {uploadSuccess && (
-            <Alert className="mb-4 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-              <CheckCircle className="size-4 text-green-500 dark:text-green-400" />
-              <AlertTitle className="text-green-500 dark:text-green-400">
-                Success
-              </AlertTitle>
-              <AlertDescription>
-                <p className="mb-2 font-semibold">
-                  Your replay file was uploaded successfully!
-                </p>
-                <p className="text-sm">Redirecting to processing page...</p>
-                <div className="mt-2">
-                  <Progress value={100} className="h-1" />
-                </div>
-              </AlertDescription>
+            <Alert variant="success" className="mb-4">
+              <CheckCircle className="size-4" />
+              <AlertTitle>Uploaded</AlertTitle>
+              <AlertDescription>Opening your match analysis…</AlertDescription>
             </Alert>
           )}
 
           {file ? (
             <div className="mb-4 flex items-center justify-between rounded-md border p-4">
               <div className="flex items-center">
-                <FileUp className="mr-2 size-5 text-blue-500" />
+                <FileUp className="mr-2 size-5 text-primary" />
                 <div className="max-w-[220px] truncate">{file.name}</div>
               </div>
               {!uploadSuccess && (
@@ -278,7 +249,7 @@ const UploadReplayPage = () => {
                   variant="ghost"
                   size="sm"
                   onClick={removeFile}
-                  className="text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="size-4" />
                 </Button>
@@ -287,7 +258,7 @@ const UploadReplayPage = () => {
           ) : (
             !uploadSuccess && (
               <div
-                className={`cursor-pointer rounded-md border-2 border-dashed p-8 text-center transition-colors ${
+                className={`cursor-pointer rounded-md border-2 border-dashed p-8 text-center transition-colors duration-instant ease-standard ${
                   isDragging
                     ? 'border-primary bg-muted/50'
                     : 'border-muted hover:border-primary/50'
@@ -295,20 +266,12 @@ const UploadReplayPage = () => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                onClick={() => {
-                  const uploadInput = document.getElementById('file-upload');
-                  if (uploadInput) {
-                    uploadInput.click();
-                  }
-                }}
+                onClick={() => fileInputRef.current?.click()}
                 onKeyDown={(e) => {
                   // Handle Enter or Space key to activate the file input
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    const uploadInput = document.getElementById('file-upload');
-                    if (uploadInput) {
-                      uploadInput.click();
-                    }
+                    fileInputRef.current?.click();
                   }
                 }}
                 role="button"
@@ -318,16 +281,16 @@ const UploadReplayPage = () => {
                 <Upload className="mx-auto mb-3 size-10 text-muted-foreground" />
                 <p className="mb-1 text-sm">
                   <span className="font-medium text-primary">
-                    Click to upload
+                    {isDragging ? 'Drop it' : 'Choose a replay'}
                   </span>{' '}
-                  or drag and drop
+                  {!isDragging && 'or drag one here'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Only Rocket League replay files (.replay) are accepted (max
-                  10MB)
+                  .replay files, up to 10MB
                 </p>
                 <input
                   id="file-upload"
+                  ref={fileInputRef}
                   type="file"
                   accept=".replay"
                   className="hidden"
@@ -340,58 +303,48 @@ const UploadReplayPage = () => {
           {/* Visibility option for ballchasing.com */}
           {!uploadSuccess && (
             <div className="mt-4">
-              <label className="mb-2 block text-sm font-medium">
-                Replay Visibility on ballchasing.com
+              <label
+                htmlFor="visibility"
+                className="mb-2 block text-sm font-medium"
+              >
+                Visibility on ballchasing.com
               </label>
               <Select
                 value={visibility}
                 onValueChange={setVisibility}
                 disabled={isUploading}
               >
-                <SelectTrigger>
+                <SelectTrigger id="visibility">
                   <SelectValue placeholder="Select visibility" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">
-                    Public (Anyone can find and view)
-                  </SelectItem>
-                  <SelectItem value="unlisted">
-                    Unlisted (Only accessible with link)
-                  </SelectItem>
-                  <SelectItem value="private">
-                    Private (Only you can view)
-                  </SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="unlisted">Unlisted</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Public replays can appear in the showcase.
+              </p>
             </div>
           )}
 
           {/* Processing info */}
           {!uploadSuccess && (
-            <Alert className="mt-4 bg-muted">
-              <Info className="size-4" />
-              <AlertTitle>Processing Information</AlertTitle>
-              <AlertDescription>
-                <p className="text-xs text-muted-foreground mt-1">
-                  After uploading, your replay will be sent to ballchasing.com
-                  for processing. This may take 1-2 minutes depending on the
-                  file size.
-                </p>
-              </AlertDescription>
-            </Alert>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Your replay goes to ballchasing.com to be parsed — usually 1–2
+              minutes.
+            </p>
           )}
 
           {/* Upload progress */}
           {isUploading && (
             <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  <span>Uploading replay file...</span>
-                </div>
-                <span>{uploadProgress}%</span>
+              <div className="flex items-center text-sm">
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                <span>Uploading…</span>
               </div>
-              <Progress value={uploadProgress} />
+              <Progress value={uploadProgress} className="h-1.5" />
             </div>
           )}
         </CardContent>
@@ -400,47 +353,41 @@ const UploadReplayPage = () => {
           {!uploadSuccess ? (
             <>
               <Button variant="outline" onClick={() => router.push('/')}>
-                Cancel
+                Back
               </Button>
-              <Button
-                onClick={handleUpload}
-                disabled={!file || isUploading}
-                className={isUploading ? 'cursor-not-allowed opacity-70' : ''}
-              >
-                {isUploading ? 'Uploading...' : 'Upload Replay'}
+              <Button onClick={handleUpload} disabled={!file || isUploading}>
+                {isUploading ? 'Uploading…' : 'Upload replay'}
               </Button>
             </>
           ) : (
             <Button
               variant="default"
               className="ml-auto"
-              onClick={() => {
-                if (uploadedFileUrl) {
-                  router.push('/');
-                }
-              }}
+              onClick={() => router.push('/')}
             >
-              Go to Home
+              Back to home
             </Button>
           )}
         </CardFooter>
       </Card>
 
       {/* Contextual Feedback Prompt */}
-      {activePrompt && (
-        <ContextualPrompt
-          context={activePrompt.context}
-          message={activePrompt.message}
-          onDismiss={dismissPrompt}
-          onOpenFullFeedback={() => {
-            // Trigger the global FeedbackWidget to open with the contextual context
-            if (activePrompt) {
-              triggerFullFeedback(activePrompt.context);
-            }
-            completePrompt();
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {activePrompt && (
+          <ContextualPrompt
+            context={activePrompt.context}
+            message={activePrompt.message}
+            onDismiss={dismissPrompt}
+            onOpenFullFeedback={() => {
+              // Trigger the global FeedbackWidget to open with the contextual context
+              if (activePrompt) {
+                triggerFullFeedback(activePrompt.context);
+              }
+              completePrompt();
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,6 +1,5 @@
 // components/LoadingSpinner.tsx
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
@@ -15,21 +14,29 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   label = 'Loading...',
 }) => {
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12',
+    sm: 'h-3 w-3 gap-[2px]',
+    md: 'h-5 w-5 gap-[3px]',
+    lg: 'h-8 w-8 gap-1',
   };
 
   return (
     <div
-      className="flex items-center justify-center"
+      className={cn('flex items-center justify-center', className)}
       role="status"
       aria-live="polite"
     >
-      <Loader2
-        className={cn(`animate-spin ${sizeClasses[size]}`, className)}
+      <div
+        className={cn('flex items-end', sizeClasses[size])}
         aria-hidden="true"
-      />
+      >
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="h-full w-[3px] flex-1 origin-bottom rounded-[1px] bg-primary motion-safe:animate-meter"
+            style={{ animationDelay: `${i * 0.12}s` }}
+          />
+        ))}
+      </div>
       <span className="sr-only">{label}</span>
     </div>
   );

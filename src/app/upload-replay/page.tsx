@@ -5,9 +5,9 @@ import UploadReplayPage from '@/components/UploadReplayPage';
 import { createClient } from '@/utils/supabase/server';
 
 export const metadata = {
-  title: 'Upload Replay | ReplayRhythms',
+  title: 'Upload a replay',
   description:
-    'Upload your Rocket League replay files for detailed analysis and personalized music recommendations based on your gameplay style.',
+    'Upload a .replay file, up to 10MB. ballchasing.com parses it and the stats pick your songs.',
 };
 
 export default async function Page() {

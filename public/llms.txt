@@ -1,6 +1,6 @@
 # ReplayRhythms
 
-> A web application that analyzes Rocket League gameplay replay files and recommends personalized music based on your unique playstyle and match statistics.
+> Upload a Rocket League replay and ReplayRhythms turns how you played that match — boost, speed, saves, goals — into songs you can play on Spotify.
 
 ## What is ReplayRhythms?
 

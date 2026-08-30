@@ -26,9 +26,6 @@ export async function login(formData: FormData) {
 }
 
 export async function googleOauthLogin() {
-  console.log(
-    '################# AUTH GOOGLE BUTTON CLICKED ##################'
-  );
   const supabase = await createClient();
 
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`;
@@ -43,9 +40,6 @@ export async function googleOauthLogin() {
   if (error) {
     redirect('/error');
   }
-  console.log(
-    `################# AUTH GOOGLE SUCCESSFULL ${JSON.stringify(data)} ##################`
-  );
 
   //   revalidatePath('/', 'layout');
   redirect(data.url);
@@ -68,7 +62,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/');
+  redirect('/login?verify=1');
 }
 
 export async function signOut() {

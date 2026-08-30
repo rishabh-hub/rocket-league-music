@@ -1,5 +1,5 @@
 // ABOUTME: Floating feedback widget with feedback type selection and form submission
-// ABOUTME: Auto-shows after 30 seconds, supports dark/light mode, accessible with keyboard navigation
+// ABOUTME: Auto-shows once per month unless dismissed, accessible with keyboard navigation
 
 'use client';
 
@@ -47,16 +47,20 @@ interface FeedbackWidgetProps {
   className?: string;
 }
 
+// How long a dismissal keeps the widget from auto-showing again
+const DISMISS_MEMORY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const DISMISSED_AT_KEY = 'feedback-dismissed-at';
+
 const feedbackTypes = [
   {
     value: 'bug' as const,
-    label: 'Bug Report',
+    label: 'Bug',
     icon: Bug,
     description: "Something isn't working",
   },
   {
     value: 'feature' as const,
-    label: 'Feature Request',
+    label: 'Feature idea',
     icon: Lightbulb,
     description: 'Suggest a new feature',
   },
@@ -64,24 +68,24 @@ const feedbackTypes = [
     value: 'improvement' as const,
     label: 'Improvement',
     icon: Wrench,
-    description: 'How we can do better',
+    description: 'Something that could work better',
   },
   {
     value: 'appreciation' as const,
     label: 'Appreciation',
     icon: Heart,
-    description: 'Share some love',
+    description: 'Say something nice',
   },
   {
     value: 'general' as const,
-    label: 'General Feedback',
+    label: 'Something else',
     icon: MessageCircle,
-    description: 'Other thoughts',
+    description: 'Anything else',
   },
 ];
 
 export function FeedbackWidget({
-  autoShowDelay = 30000,
+  autoShowDelay = 180000,
   className,
 }: FeedbackWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -105,6 +109,9 @@ export function FeedbackWidget({
   // Auto-show logic
   useEffect(() => {
     if (isDismissed || hasAutoShown) return;
+
+    const dismissedAt = Number(localStorage.getItem(DISMISSED_AT_KEY));
+    if (dismissedAt && Date.now() - dismissedAt < DISMISS_MEMORY_MS) return;
 
     const timer = setTimeout(() => {
       // Check if contextual feedback should suppress global auto-show
@@ -181,8 +188,7 @@ export function FeedbackWidget({
 
     if (!message.trim()) {
       toast({
-        title: 'Message required',
-        description: 'Please enter your feedback message.',
+        title: 'Write something first',
         variant: 'destructive',
       });
       return;
@@ -190,8 +196,8 @@ export function FeedbackWidget({
 
     if (message.trim().length < 10) {
       toast({
-        title: 'Message too short',
-        description: 'Please enter at least 10 characters for your feedback.',
+        title: 'A bit more detail',
+        description: 'Ten characters minimum.',
         variant: 'destructive',
       });
       return;
@@ -237,7 +243,7 @@ export function FeedbackWidget({
             .map((err: any) => err.message)
             .join(', ');
           toast({
-            title: 'Validation Error',
+            title: 'Check that again',
             description: validationErrors,
             variant: 'destructive',
           });
@@ -248,8 +254,7 @@ export function FeedbackWidget({
       }
 
       toast({
-        title: 'Feedback submitted!',
-        description: "Thank you for your feedback. We'll review it soon.",
+        title: 'Got it. I read these myself.',
       });
 
       // Track successful submission
@@ -284,14 +289,11 @@ export function FeedbackWidget({
       autoTriggered: showAutoPrompt,
     });
 
+    localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()));
     setIsDismissed(true);
     setShowAutoPrompt(false);
     setIsOpen(false);
   };
-
-  const selectedTypeData = feedbackTypes.find(
-    (type) => type.value === selectedType
-  );
 
   if (!isOpen && !showAutoPrompt) {
     return (
@@ -304,12 +306,11 @@ export function FeedbackWidget({
               page: window.location.pathname,
             });
           }}
-          size="lg"
-          className="rounded-full shadow-lg hover:scale-105 transition-transform"
-          aria-label="Open feedback widget"
+          size="icon"
+          className="size-11 rounded-full border border-border bg-secondary text-secondary-foreground transition-colors duration-instant hover:bg-accent"
+          aria-label="Send feedback"
         >
-          <MessageSquare className="h-5 w-5 mr-2" />
-          Feedback
+          <MessageSquare className="size-5" />
         </Button>
       </div>
     );
@@ -317,26 +318,26 @@ export function FeedbackWidget({
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
-      <Card className="w-96 shadow-xl border-2">
+      <Card className="w-[22rem] border-border shadow-2xl shadow-black/40">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Share Feedback</CardTitle>
+              <CardTitle className="text-lg">Tell me something</CardTitle>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleDismiss}
               className="h-8 w-8"
-              aria-label="Close feedback widget"
+              aria-label="Close"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
           {showAutoPrompt && !isOpen && (
             <CardDescription className="text-primary">
-              How's your experience so far? Let us know!
+              Found a bug, or something that should work differently?
             </CardDescription>
           )}
         </CardHeader>
@@ -377,7 +378,7 @@ export function FeedbackWidget({
               <Label htmlFor="feedback-message">Your message</Label>
               <Textarea
                 id="feedback-message"
-                placeholder={`Tell us about your ${selectedTypeData?.label.toLowerCase()}...`}
+                placeholder="What happened, and what did you expect instead?"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="min-h-[100px] resize-none"
@@ -387,7 +388,7 @@ export function FeedbackWidget({
               <div
                 className={`text-xs text-right ${
                   message.length < 10
-                    ? 'text-red-500 dark:text-red-400'
+                    ? 'text-destructive'
                     : 'text-muted-foreground'
                 }`}
               >
@@ -398,7 +399,7 @@ export function FeedbackWidget({
 
             <div className="flex gap-2">
               <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? 'Submitting...' : 'Send Feedback'}
+                {isSubmitting ? 'Sending…' : 'Send'}
               </Button>
               {showAutoPrompt && (
                 <Button
@@ -406,7 +407,7 @@ export function FeedbackWidget({
                   variant="outline"
                   onClick={() => setShowAutoPrompt(false)}
                 >
-                  Maybe Later
+                  Not now
                 </Button>
               )}
             </div>

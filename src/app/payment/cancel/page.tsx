@@ -3,30 +3,29 @@ import { XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export const metadata = {
-  title: 'Payment Cancelled | ReplayRhythms',
-  description:
-    'Your payment was cancelled. No changes were made to your account.',
+  title: 'Checkout cancelled',
+  description: 'Nothing was charged, and your account is untouched.',
 };
 
 export default function PaymentCancelPage() {
   return (
     <div className="container flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center text-center">
-      <div className="bg-card mx-auto max-w-md rounded-lg p-6 shadow-lg">
+      <Card className="mx-auto max-w-md p-6">
         <XCircle
-          className="mx-auto mb-4 size-16 text-red-500"
+          className="text-muted-foreground mx-auto mb-4 size-10"
           aria-hidden="true"
         />
-        <h1 className="mb-4 text-3xl font-bold">Payment Cancelled</h1>
+        <h1 className="mb-4 text-3xl font-semibold">Checkout cancelled</h1>
         <p className="text-muted-foreground mb-6">
-          The payment process was cancelled. No changes have been made to your
-          account.
+          Nothing was charged, and your account is untouched.
         </p>
         <Button asChild size="lg">
-          <Link href="/">Return to Home</Link>
+          <Link href="/replays">Back to your replays</Link>
         </Button>
-      </div>
+      </Card>
     </div>
   );
 }

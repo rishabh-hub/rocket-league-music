@@ -6,6 +6,8 @@
 import React, { Component, ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 
+import { Button } from '@/components/ui/button';
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -50,23 +52,21 @@ class ErrorBoundary extends Component<Props, State> {
         this.props.fallback || (
           <div className="flex min-h-[400px] items-center justify-center">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Something went wrong
+              <h2 className="text-foreground text-xl font-semibold">
+                This page stopped rendering
               </h2>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                We've been notified about this error and will look into it.
+              <p className="text-muted-foreground mt-2 text-sm">
+                This one was logged to Sentry. Reloading usually clears it — if
+                it comes back, the ID below says exactly what broke.
               </p>
               {this.state.eventId && (
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="text-muted-foreground mt-2 font-mono text-xs">
                   Error ID: {this.state.eventId}
                 </p>
               )}
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-              >
+              <Button className="mt-4" onClick={() => window.location.reload()}>
                 Reload page
-              </button>
+              </Button>
             </div>
           </div>
         )

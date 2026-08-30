@@ -1,10 +1,9 @@
-// app/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import { CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import {
   CardCurtain,
@@ -14,15 +13,14 @@ import {
   CardCurtainRevealFooter,
   CardCurtainRevealTitle,
 } from '@/components/ui/card-curtain-reveal';
-import { CurtainRevealButton } from '@/components/ui/CurtainRevealButton';
+import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { motion } from 'motion/react';
 import ShowcaseButton from '@/components/ShowcaseButton';
 
 export default function HomePage() {
   const router = useRouter();
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,38 +43,29 @@ export default function HomePage() {
     );
   }
 
-  // Show different content based on authentication status
   const isAuthenticated = !!user;
 
   return (
-    <div className="container max-w-5xl py-8 px-4">
-      <motion.div
-        className="flex flex-col items-center text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-      >
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-2">
-          Rocket League Music Match
+    <div className="mx-auto w-full max-w-5xl px-4 py-12">
+      <div className="flex flex-col">
+        <h1 className="font-display text-5xl font-semibold tracking-[-0.034em] text-foreground mb-3">
+          Hear how you play
         </h1>
 
-        <motion.p className="dark:text-zinc-400 text-zinc-600 max-w-md">
-          Get personalized music recommendations based on your Rocket League
-          playstyle and replay stats
-        </motion.p>
-        <ShowcaseButton />
-      </motion.div>
+        <p className="text-muted-foreground max-w-lg">
+          Upload a replay. ReplayRhythms reads your boost, pace and positioning
+          off ballchasing.com and hands back songs that fit.
+        </p>
+        <p className="text-muted-foreground mt-2 max-w-lg text-sm">
+          On Windows, Rocket League saves every match to Documents\My
+          Games\Rocket League\TAGame\Demos.
+        </p>
+        <div className="self-start">
+          <ShowcaseButton />
+        </div>
+      </div>
 
-      <motion.p
-        className="text-center text-muted-foreground"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
-      >
-        Discover your perfect gaming soundtrack
-      </motion.p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mt-12">
         <div
           onClick={() => {
             if (isAuthenticated) {
@@ -95,51 +84,46 @@ export default function HomePage() {
               }
             }
           }}
-          className="cursor-pointer transition-transform hover:scale-[1.01]"
+          className="md:col-span-3 cursor-pointer rounded-lg border border-transparent transition-colors duration-instant hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
-          aria-label="Navigate to upload replay page"
+          aria-label="Upload a replay"
         >
-          {/* Card with background image */}
           <div className="relative">
-            {/* Background image positioned absolute to fill the entire card */}
             <div className="absolute inset-0 z-0">
               <Image
                 fill
-                alt="Rocket League car in arena - Upload replay files to analyze your gameplay"
+                alt="A Rocket League car mid-air in an arena"
                 src="/images/porsche.webp"
                 className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, 60vw"
                 quality={75}
                 priority
                 fetchPriority="high"
               />
-              {/* Gradient overlay that adapts to theme */}
-              <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            {/* CardCurtainReveal positioned relative on top of the background */}
-            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-zinc-100 dark:border-zinc-800 bg-transparent dark:text-zinc-50 text-zinc-900 shadow dark:hover:text-zinc-50 hover:text-zinc-900">
+            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-border bg-transparent text-zinc-50">
               <CardCurtainRevealBody className="p-8">
-                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 dark:text-zinc-50 text-zinc-700">
-                  <CardTitle>Upload Replay</CardTitle>
+                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
+                  Upload Replay
                 </CardCurtainRevealTitle>
                 <CardCurtainRevealDescription className="mb-8">
                   <p className="text-base leading-relaxed text-zinc-300">
-                    Upload your .replay files to get music recommendations
-                    tailored to your unique playstyle. Our AI analyzes your
-                    gameplay patterns, aggression level, and match dynamics to
-                    suggest the perfect soundtrack that matches your Rocket
-                    League energy and flow.
+                    Drop in a .replay file. ballchasing.com breaks out the match
+                    — boost usage, time behind the ball, supersonic time, shots
+                    — and those numbers pick the songs. Usually done in two
+                    minutes.
                     {!isAuthenticated && (
-                      <span className="block mt-2 text-sm text-blue-400">
-                        Sign in to get started!
+                      <span className="block mt-2 text-sm text-zinc-400">
+                        Sign in first
                       </span>
                     )}
                   </p>
                 </CardCurtainRevealDescription>
 
-                <CurtainRevealButton
+                <Button
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents the outer div's onClick from firing
                     if (isAuthenticated) {
@@ -151,17 +135,19 @@ export default function HomePage() {
                   variant={'secondary'}
                   size={'icon'}
                   className="aspect-square rounded-full"
+                  tabIndex={-1}
+                  aria-hidden="true"
                 >
                   <ArrowUpRight />
-                </CurtainRevealButton>
-                <CardCurtain className="dark:bg-zinc-50 bg-white" />
+                </Button>
+                <CardCurtain className="bg-zinc-50" />
               </CardCurtainRevealBody>
-              {/* No image in the footer since it's already in the background */}
-              <CardCurtainRevealFooter className="mt-auto">
-                {/* Empty footer to maintain the layout */}
-              </CardCurtainRevealFooter>
+              <CardCurtainRevealFooter className="mt-auto" />
             </CardCurtainReveal>
           </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Drop a .replay file, get a playlist.
+          </p>
         </div>
 
         <div
@@ -182,51 +168,43 @@ export default function HomePage() {
               }
             }
           }}
-          className="cursor-pointer transition-transform hover:scale-[1.01]"
+          className="md:col-span-2 md:mt-16 cursor-pointer rounded-lg border border-transparent transition-colors duration-instant hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
-          aria-label="Navigate to view replays page"
+          aria-label="Your replays"
         >
-          {/* Card with background image */}
           <div className="relative">
-            {/* Background image positioned absolute to fill the entire card */}
             <div className="absolute inset-0 z-0">
               <Image
                 fill
-                alt="Rocket League analytics dashboard showing match statistics and gameplay metrics"
+                alt="A ReplayRhythms stats screen for a finished match"
                 src="/images/dashboard.png"
                 className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, 40vw"
                 quality={75}
-                priority
-                fetchPriority="high"
+                loading="lazy"
               />
-              {/* Gradient overlay that adapts to theme */}
-              <div className="absolute inset-0 bg-gradient-to-b dark:from-zinc-950 dark:via-zinc-950/90 dark:to-zinc-950/50 from-white/90 via-white/75 to-white/50"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            {/* CardCurtainReveal positioned relative on top of the background */}
-            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-zinc-100 dark:border-zinc-800 bg-transparent dark:text-zinc-50 text-zinc-900 shadow dark:hover:text-zinc-50 hover:text-zinc-900">
+            <CardCurtainReveal className="relative z-10 h-[520px] w-full border border-border bg-transparent text-zinc-50">
               <CardCurtainRevealBody className="p-8">
-                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 dark:text-zinc-50 text-zinc-700">
-                  <CardTitle>View Your Replays</CardTitle>
+                <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
+                  View Your Replays
                 </CardCurtainRevealTitle>
                 <CardCurtainRevealDescription className="mb-8">
                   <p className="text-base leading-relaxed text-zinc-300">
-                    Browse your personalized music recommendations and replay
-                    history. See how your playstyle has evolved and discover new
-                    tracks that match your current gaming vibe. Connect with
-                    Spotify to create playlists from your recommended songs and
-                    enhance your Rocket League sessions.
+                    Every replay you have uploaded, and the songs each one
+                    produced. Play them inline, or open them in Spotify.
                     {!isAuthenticated && (
-                      <span className="block mt-2 text-sm text-blue-400">
-                        Sign in to access your replays!
+                      <span className="block mt-2 text-sm text-zinc-400">
+                        Sign in to see yours
                       </span>
                     )}
                   </p>
                 </CardCurtainRevealDescription>
 
-                <CurtainRevealButton
+                <Button
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents the outer div's onClick from firing
                     if (isAuthenticated) {
@@ -238,17 +216,19 @@ export default function HomePage() {
                   variant={'secondary'}
                   size={'icon'}
                   className="aspect-square rounded-full"
+                  tabIndex={-1}
+                  aria-hidden="true"
                 >
                   <ArrowUpRight />
-                </CurtainRevealButton>
-                <CardCurtain className="dark:bg-zinc-50 bg-white" />
+                </Button>
+                <CardCurtain className="bg-zinc-50" />
               </CardCurtainRevealBody>
-              {/* No image in the footer since it's already in the background */}
-              <CardCurtainRevealFooter className="mt-auto">
-                {/* Empty footer to maintain the layout */}
-              </CardCurtainRevealFooter>
+              <CardCurtainRevealFooter className="mt-auto" />
             </CardCurtainReveal>
           </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Every upload keeps its track list.
+          </p>
         </div>
       </div>
     </div>

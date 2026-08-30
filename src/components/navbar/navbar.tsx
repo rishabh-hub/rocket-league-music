@@ -1,13 +1,9 @@
-import { LanguageSwitcher } from './language-switcher';
-
 // import { auth } from '@/app/api/auth/[...nextauth]/auth-options';
 import { SignInButton } from '@/components/navbar/sign-in-button';
 import { UserDropdown } from '@/components/navbar/user-dropdown';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Link } from '@/lib/i18n';
-import * as m from '@/paraglide/messages';
 import { createClient } from '@/utils/supabase/server';
-import Image from 'next/image';
 
 export const Navbar = async () => {
   const supabase = await createClient();
@@ -41,17 +37,34 @@ export const Navbar = async () => {
   // const userName = user_name ? `@${user_name}` : 'User Name Not Set';
 
   return (
-    <header className="w-full border-b">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="font-mono text-lg font-bold">
-          {/* <Image
-            src="/images/logo.png"
-            alt="ReplayRhythms - Rocket League Replay Analysis with Musical Matching"
-            width={150}
-            height={40}
-          /> */}
-          Replay Rythms
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
+        >
+          ReplayRhythms
         </Link>
+        <nav className="hidden items-center gap-6 text-sm sm:flex">
+          <Link
+            href="/upload-replay"
+            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
+          >
+            Upload replay
+          </Link>
+          <Link
+            href="/replays"
+            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
+          >
+            My replays
+          </Link>
+          <Link
+            href="/showcase"
+            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
+          >
+            Showcase
+          </Link>
+        </nav>
         <div className="flex items-center gap-2">
           {user ? (
             <UserDropdown
@@ -65,7 +78,6 @@ export const Navbar = async () => {
           )}
 
           <ThemeSwitcher />
-          <LanguageSwitcher />
         </div>
       </div>
     </header>

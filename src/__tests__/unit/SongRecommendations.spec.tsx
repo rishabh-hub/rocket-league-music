@@ -134,7 +134,13 @@ jest.mock('@/components/ui/use-toast', () => ({
 
 // Mock SpotifySongCard as a simple div (per navbar pattern)
 jest.mock('@/components/SpotifySongCard', () => {
-  const MockSpotifySongCard = ({ song, index }: { song: any; index: number }) => (
+  const MockSpotifySongCard = ({
+    song,
+    index,
+  }: {
+    song: any;
+    index: number;
+  }) => (
     <div data-testid={`song-card-${index}`}>
       {song.title} by {song.artist}
     </div>
@@ -144,6 +150,24 @@ jest.mock('@/components/SpotifySongCard', () => {
 });
 
 // --- Fixtures ---
+
+const replayData = {
+  metrics: {
+    teams: {
+      blue: {
+        players: [
+          {
+            id: 'player-123',
+            name: 'TestPlayer',
+            goals: 2,
+            saves: 1,
+            assists: 3,
+          },
+        ],
+      },
+    },
+  },
+};
 
 const deterministicResult = {
   success: true,
@@ -233,11 +257,14 @@ describe('SongRecommendations', () => {
     jest.clearAllMocks();
   });
 
-  it('renders "Test with Sample Data" button', () => {
-    render(<SongRecommendations replayData={null} />);
+  it('renders a button per player in the replay', () => {
+    render(<SongRecommendations replayData={replayData} />);
 
     expect(
-      screen.getByRole('button', { name: /test with sample data/i })
+      screen.getByRole('button', { name: /TestPlayer/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('2 goals · 1 saves · 3 assists')
     ).toBeInTheDocument();
   });
 
@@ -248,12 +275,10 @@ describe('SongRecommendations', () => {
         json: async () => deterministicResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      // Click "Test with Sample Data"
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      // Pick the player the recommendations are generated for
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
         // Categories should render
@@ -269,12 +294,12 @@ describe('SongRecommendations', () => {
         expect(screen.getByText('Medium')).toBeInTheDocument();
 
         // Metrics
-        expect(screen.getByText('Intensity Score')).toBeInTheDocument();
-        expect(screen.getByText('75')).toBeInTheDocument();
-        expect(screen.getByText('Performance Score')).toBeInTheDocument();
-        expect(screen.getByText('80')).toBeInTheDocument();
-        expect(screen.getByText('Teamwork Factor')).toBeInTheDocument();
-        expect(screen.getByText('60')).toBeInTheDocument();
+        expect(screen.getByText('Intensity')).toBeInTheDocument();
+        expect(screen.getByText('75/100')).toBeInTheDocument();
+        expect(screen.getByText('Performance')).toBeInTheDocument();
+        expect(screen.getByText('80/100')).toBeInTheDocument();
+        expect(screen.getByText('Teamwork')).toBeInTheDocument();
+        expect(screen.getByText('60/100')).toBeInTheDocument();
       });
     });
 
@@ -284,14 +309,12 @@ describe('SongRecommendations', () => {
         json: async () => deterministicResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('75')).toBeInTheDocument();
+        expect(screen.getByText('75/100')).toBeInTheDocument();
       });
 
       // Agentic-specific content should NOT be present
@@ -310,11 +333,9 @@ describe('SongRecommendations', () => {
         json: async () => deterministicResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId('song-card-0')).toBeInTheDocument();
@@ -326,17 +347,15 @@ describe('SongRecommendations', () => {
   });
 
   describe('agentic mode', () => {
-    it('renders narrative, player_archetype, emotional_arc, key_observations, and song_search_direction', async () => {
+    it('renders narrative, player_archetype, emotional_arc and key_observations, but not song_search_direction', async () => {
       global.fetch = jest.fn().mockResolvedValueOnce({
         ok: true,
         json: async () => agenticResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
         // Narrative
@@ -365,12 +384,12 @@ describe('SongRecommendations', () => {
           screen.getByText('Strong rotation discipline')
         ).toBeInTheDocument();
 
-        // Song Search Direction
+        // The internal search direction stays out of the UI
         expect(
-          screen.getByText(
+          screen.queryByText(
             'High energy electronic music with triumphant drops and soaring synths'
           )
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -380,20 +399,18 @@ describe('SongRecommendations', () => {
         json: async () => agenticResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
         expect(screen.getByText('Aerial Ace')).toBeInTheDocument();
       });
 
       // Deterministic-specific content should NOT be present
-      expect(screen.queryByText('Intensity Score')).not.toBeInTheDocument();
-      expect(screen.queryByText('Performance Score')).not.toBeInTheDocument();
-      expect(screen.queryByText('Teamwork Factor')).not.toBeInTheDocument();
+      expect(screen.queryByText('75/100')).not.toBeInTheDocument();
+      expect(screen.queryByText('80/100')).not.toBeInTheDocument();
+      expect(screen.queryByText('60/100')).not.toBeInTheDocument();
     });
 
     it('renders agentic song cards', async () => {
@@ -402,11 +419,9 @@ describe('SongRecommendations', () => {
         json: async () => agenticResult,
       });
 
-      render(<SongRecommendations replayData={null} />);
+      render(<SongRecommendations replayData={replayData} />);
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /test with sample data/i })
-      );
+      fireEvent.click(screen.getByRole('button', { name: /TestPlayer/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId('song-card-0')).toBeInTheDocument();

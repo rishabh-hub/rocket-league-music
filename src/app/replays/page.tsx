@@ -2,16 +2,10 @@
 // ABOUTME: Shows replay list with status badges and navigation to detail views.
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -25,11 +19,22 @@ import {
   ArrowLeft,
   Upload,
   FileUp,
-  Loader2,
+  Globe,
+  Lock,
   AlertTriangle,
 } from 'lucide-react';
 import { Replay } from '@/types/replay';
 import { StatusBadge } from '@/components/StatusBadge';
+import { formatDateTime } from '@/utils/formatDate';
+
+/**
+ * Builds the scoreline for a processed replay, falling back to the file name
+ * for replays whose stats have not come back yet.
+ */
+const matchLabel = (replay: Replay) =>
+  replay.metrics?.blue?.name && replay.metrics?.orange?.name
+    ? `${replay.metrics.blue.name} ${replay.metrics.blue.goals}–${replay.metrics.orange.goals} ${replay.metrics.orange.name}`
+    : replay.file_name;
 
 export default function ReplaysPage() {
   const router = useRouter();
@@ -39,42 +44,43 @@ export default function ReplaysPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchReplays = async () => {
-      try {
-        setLoading(true);
+  const fetchReplays = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Check if user is logged in
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) {
-          router.push('/login');
-          return;
-        }
-
-        // Fetch replays from the database (filtered by current user)
-        const { data, error } = await supabase
-          .from('replays')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setReplays(data || []);
-      } catch (err: any) {
-        console.error('Error fetching replays:', err);
-        setError(err.message || 'Failed to fetch replays');
-      } finally {
-        setLoading(false);
+      // Check if user is logged in
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
       }
-    };
 
-    fetchReplays();
+      // Fetch replays from the database (filtered by current user)
+      const { data, error } = await supabase
+        .from('replays')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setReplays(data || []);
+    } catch (err: any) {
+      console.error('Error fetching replays:', err);
+      setError(err.message || 'Failed to fetch replays');
+    } finally {
+      setLoading(false);
+    }
   }, [router, supabase]);
+
+  useEffect(() => {
+    fetchReplays();
+  }, [fetchReplays]);
 
   return (
     <div className="container py-8 px-4">
@@ -88,25 +94,37 @@ export default function ReplaysPage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
           </Button>
           <h1 className="text-3xl font-bold">Your Replays</h1>
+          {replays.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-1 tabular-nums">
+              {replays.length} uploaded
+            </p>
+          )}
         </div>
-        <Button onClick={() => router.push('/upload')}>
-          <Upload className="mr-2 h-4 w-4" /> Upload New Replay
+        <Button onClick={() => router.push('/upload-replay')}>
+          <Upload className="mr-2 h-4 w-4" /> Upload a replay
         </Button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <Card>
+          <CardContent className="pt-6 space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-12 rounded-md bg-muted animate-pulse" />
+            ))}
+          </CardContent>
+        </Card>
       ) : error ? (
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
               <AlertTriangle className="h-10 w-10 text-destructive mb-4" />
               <h2 className="text-xl font-semibold mb-2">
-                Error Loading Replays
+                Could not load your replays
               </h2>
               <p className="text-muted-foreground">{error}</p>
+              <Button variant="outline" className="mt-4" onClick={fetchReplays}>
+                Try again
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -115,29 +133,29 @@ export default function ReplaysPage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center py-8">
               <FileUp className="h-10 w-10 text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No Replays Found</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                Nothing uploaded yet
+              </h2>
               <p className="text-muted-foreground mb-4">
-                Upload your first Rocket League replay file to get started
+                On Windows, Rocket League keeps your replays in{' '}
+                <span className="font-mono text-xs text-foreground">
+                  Documents\My Games\Rocket League\TAGame\Demos
+                </span>
+                . Grab your last match and drop it in.
               </p>
               <Button onClick={() => router.push('/upload-replay')}>
-                Upload Replay
+                Upload your first replay
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle>Replay Files</CardTitle>
-            <CardDescription>
-              View and analyze your uploaded Rocket League replays
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>File Name</TableHead>
+                  <TableHead>Match</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Visibility</TableHead>
                   <TableHead>Uploaded At</TableHead>
@@ -147,26 +165,38 @@ export default function ReplaysPage() {
               <TableBody>
                 {replays.map((replay) => (
                   <TableRow key={replay.id}>
-                    <TableCell className="font-medium">
-                      {replay.file_name}
+                    <TableCell className="font-medium tabular-nums">
+                      {matchLabel(replay)}
+                      <div className="text-xs font-normal text-muted-foreground">
+                        {replay.metrics?.map_name ?? replay.file_name}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={replay.status} />
                     </TableCell>
-                    <TableCell className="capitalize">
-                      {replay.visibility}
-                    </TableCell>
                     <TableCell>
-                      {new Date(replay.created_at).toLocaleString()}
+                      {replay.visibility === 'public' ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Globe className="h-3 w-3" />
+                          Public
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Lock className="h-3 w-3" />
+                          Private
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {formatDateTime(replay.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => router.push(`/replays/${replay.id}`)}
-                        disabled={replay.status === 'failed'}
                       >
-                        View Details
+                        View analysis
                       </Button>
                     </TableCell>
                   </TableRow>

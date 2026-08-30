@@ -50,13 +50,16 @@ jest.mock('@/components/ui/card', () => {
 });
 
 jest.mock('@/components/ui/button', () => {
+  // asChild renders the child in place of the button, matching Radix Slot.
   const Button = ({
     children,
+    asChild,
     ...props
   }: {
     children: React.ReactNode;
+    asChild?: boolean;
     [key: string]: any;
-  }) => <button {...props}>{children}</button>;
+  }) => (asChild ? <>{children}</> : <button {...props}>{children}</button>);
   Button.displayName = 'Button';
   return { Button };
 });
@@ -110,41 +113,53 @@ describe('SpotifySongCard', () => {
     render(<SpotifySongCard song={baseSong} index={0} />);
 
     expect(screen.getByText('Midnight Drive')).toBeInTheDocument();
-    expect(screen.getByText('by Synthwave Sam')).toBeInTheDocument();
-    expect(screen.getByText('Match: 85%')).toBeInTheDocument();
+    expect(screen.getByText('Synthwave Sam')).toBeInTheDocument();
+    expect(screen.getByText('85% match')).toBeInTheDocument();
     expect(screen.getByText('128 BPM • High')).toBeInTheDocument();
   });
 
   it('highlights matched moods and themes using matched_criteria', () => {
     render(<SpotifySongCard song={baseSong} index={0} />);
 
-    // "Energetic" is in matched_criteria, should have a checkmark
-    const energeticBadge = screen.getByText((content, element) => {
-      return (
-        element?.tagName.toLowerCase() === 'span' &&
-        content.includes('Energetic') &&
-        (element?.textContent?.includes('\u2713') ?? false)
-      );
-    });
-    expect(energeticBadge).toBeInTheDocument();
+    // "Energetic" is in matched_criteria, so its mood badge is filled
+    expect(screen.getByText('Energetic')).toHaveAttribute(
+      'data-variant',
+      'default'
+    );
+    expect(screen.getByText('Uplifting')).toHaveAttribute(
+      'data-variant',
+      'outline'
+    );
 
-    // "Competition" is in matched_criteria for themes, should have a star
-    const competitionBadge = screen.getByText((content, element) => {
-      return (
-        element?.tagName.toLowerCase() === 'span' &&
-        content.includes('Competition') &&
-        (element?.textContent?.includes('\u2605') ?? false)
-      );
-    });
-    expect(competitionBadge).toBeInTheDocument();
+    // "Competition" is in matched_criteria, so its theme badge is filled
+    expect(screen.getByText('Competition')).toHaveAttribute(
+      'data-variant',
+      'default'
+    );
+    expect(screen.getByText('Victory')).toHaveAttribute(
+      'data-variant',
+      'secondary'
+    );
   });
 
-  it('renders matched criteria summary text', () => {
+  it('does not reprint matched criteria as a summary line', () => {
     render(<SpotifySongCard song={baseSong} index={0} />);
 
-    expect(
-      screen.getByText('Matched: Energetic, Competition')
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/^Matched:/)).not.toBeInTheDocument();
+  });
+
+  it('orders matched moods ahead of unmatched ones', () => {
+    const manyMoods: Song = {
+      ...baseSong,
+      moods: ['Calm', 'Driving', 'Wistful', 'Energetic'],
+      matched_criteria: ['Energetic'],
+    };
+    render(<SpotifySongCard song={manyMoods} index={0} />);
+
+    // The matched mood survives the cap of three; the last unmatched one does not
+    expect(screen.getByText('Energetic')).toBeInTheDocument();
+    expect(screen.queryByText('Wistful')).not.toBeInTheDocument();
+    expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
   it('renders llm_vibe when present (agentic song)', () => {
@@ -175,20 +190,21 @@ describe('SpotifySongCard', () => {
     expect(screen.queryByText('Aerial goal')).not.toBeInTheDocument();
   });
 
-  it('renders quality badge based on match_score', () => {
+  it('shows the match score exactly once, with no qualitative label', () => {
     render(<SpotifySongCard song={baseSong} index={0} />);
 
-    // 85% should get "Perfect Match"
-    expect(screen.getByText('Perfect Match')).toBeInTheDocument();
+    expect(screen.getAllByText('85% match')).toHaveLength(1);
+    expect(screen.queryByText('Perfect Match')).not.toBeInTheDocument();
   });
 
-  it('renders "Good Match" badge for scores between 60-79', () => {
-    const goodMatchSong: Song = {
+  it('shows the match score for a mid-range score', () => {
+    const midMatchSong: Song = {
       ...baseSong,
       match_score: 70,
     };
-    render(<SpotifySongCard song={goodMatchSong} index={0} />);
+    render(<SpotifySongCard song={midMatchSong} index={0} />);
 
-    expect(screen.getByText('Good Match')).toBeInTheDocument();
+    expect(screen.getByText('70% match')).toBeInTheDocument();
+    expect(screen.queryByText('Good Match')).not.toBeInTheDocument();
   });
 });

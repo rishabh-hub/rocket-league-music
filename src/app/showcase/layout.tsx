@@ -5,13 +5,12 @@ import { Metadata } from 'next';
 import { PropsWithChildren } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Replay Showcase | Community Rocket League Replays',
+  title: 'Showcase',
   description:
-    "Browse community-shared Rocket League replays with personalized music recommendations. See how other players' unique playstyles translate into music.",
+    'Public Rocket League replays from other players, and the songs their stats produced.',
   openGraph: {
-    title: 'Replay Showcase | ReplayRhythms',
-    description:
-      'Explore community Rocket League replays and their matching music recommendations.',
+    title: 'Showcase',
+    description: "See what other players' matches sound like.",
     type: 'website',
   },
 };

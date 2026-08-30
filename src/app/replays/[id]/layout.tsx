@@ -7,8 +7,8 @@ import { PropsWithChildren } from 'react';
 export const metadata: Metadata = {
   title: 'Replay Details | ReplayRhythms',
   description:
-    'View detailed Rocket League replay analysis with personalized music recommendations based on gameplay stats and playstyle.',
-  robots: { index: true, follow: true },
+    'Match stats, playstyle breakdown, and the songs that match how you played.',
+  robots: { index: false, follow: true },
 };
 
 export default function ReplayDetailLayout({ children }: PropsWithChildren) {

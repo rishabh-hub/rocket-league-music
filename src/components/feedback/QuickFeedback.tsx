@@ -22,7 +22,7 @@ interface QuickFeedbackProps {
 
 export function QuickFeedback({
   context,
-  label = 'Was this helpful?',
+  label = 'Do these songs fit?',
   className = '',
   variant = 'helpful',
   onFeedbackSubmitted,
@@ -73,8 +73,7 @@ export function QuickFeedback({
 
       // Show success message briefly
       toast({
-        title: 'Thanks for your feedback!',
-        description: 'Your input helps us improve.',
+        title: 'Got it. I read these myself.',
         duration: 3000,
       });
     } catch (error) {
@@ -104,11 +103,11 @@ export function QuickFeedback({
   if (isSubmitted) {
     return (
       <Card
-        className={`inline-flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 ${className}`}
+        className={`inline-flex items-center gap-2 rounded-lg border-border bg-secondary px-3 py-2 ${className}`}
       >
-        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-        <span className="text-sm text-green-700 dark:text-green-300">
-          Thanks for your feedback!
+        <Check className="h-4 w-4 text-primary" />
+        <span className="text-sm text-muted-foreground">
+          Got it. I read these myself.
         </span>
       </Card>
     );
@@ -126,8 +125,8 @@ export function QuickFeedback({
             disabled={isSubmitting}
             className={`h-8 w-8 p-0 ${
               selectedRating === 'thumbs-up'
-                ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
-                : 'hover:bg-green-50 dark:hover:bg-green-950'
+                ? 'bg-accent text-accent-foreground'
+                : ''
             }`}
             aria-label="Thumbs up"
           >
@@ -140,8 +139,8 @@ export function QuickFeedback({
             disabled={isSubmitting}
             className={`h-8 w-8 p-0 ${
               selectedRating === 'thumbs-down'
-                ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
-                : 'hover:bg-red-50 dark:hover:bg-red-950'
+                ? 'bg-accent text-accent-foreground'
+                : ''
             }`}
             aria-label="Thumbs down"
           >
@@ -164,7 +163,7 @@ export function QuickFeedback({
           disabled={isSubmitting}
           className={`text-xs ${
             selectedRating === 'helpful'
-              ? 'bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300'
+              ? 'bg-accent text-accent-foreground'
               : ''
           }`}
         >
@@ -177,7 +176,7 @@ export function QuickFeedback({
           disabled={isSubmitting}
           className={`text-xs ${
             selectedRating === 'not-helpful'
-              ? 'bg-red-100 dark:bg-red-900 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+              ? 'bg-accent text-accent-foreground'
               : ''
           }`}
         >

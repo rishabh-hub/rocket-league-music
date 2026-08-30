@@ -1,51 +1,73 @@
+/* ABOUTME: Defines the app's colour, radius and elevation tokens for light and dark themes. */
+/* ABOUTME: Consumed through tailwind.config.ts; edit tokens here, never hex values in components. */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 228 28% 98%;
+    --foreground: 228 24% 11%;
+    --surface: 228 20% 95%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 228 24% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --popover-foreground: 228 24% 11%;
+    --primary: 221 72% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 18% 94%;
+    --secondary-foreground: 228 22% 22%;
+    --muted: 228 18% 94%;
+    --muted-foreground: 224 12% 42%;
+    --accent: 221 40% 93%;
+    --accent-foreground: 221 60% 26%;
+    --signal: 20 84% 44%;
+    --signal-foreground: 0 0% 100%;
+    --destructive: 4 70% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 226 16% 88%;
+    --input: 226 16% 82%;
+    --ring: 221 72% 46%;
+    --overlay: 228 34% 14%;
+    --radius: 0.375rem;
+    --radius-xs: 0.25rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1.25rem;
+    color-scheme: light;
   }
 
+  /* Accent permissions: --primary is allowed only on the primary CTA (one per
+     viewport), the focus ring, the active nav/tab indicator, the selected or
+     matched state, and the user's own team. --signal is allowed only on the
+     opponent team and negative deltas. Nothing else may be chromatic. */
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --background: 228 14% 5%;
+    --foreground: 210 16% 95%;
+    --surface: 226 13% 8%;
+    --card: 225 12% 9%;
+    --card-foreground: 210 16% 95%;
+    --popover: 224 12% 12%;
+    --popover-foreground: 210 16% 95%;
+    --primary: 221 76% 62%;
+    --primary-foreground: 228 24% 7%;
+    --secondary: 222 11% 14%;
+    --secondary-foreground: 214 14% 90%;
+    --muted: 222 11% 14%;
+    --muted-foreground: 218 12% 63%;
+    --accent: 221 26% 18%;
+    --accent-foreground: 214 20% 92%;
+    --signal: 22 92% 60%;
+    --signal-foreground: 24 44% 8%;
+    --destructive: 6 72% 56%;
+    --destructive-foreground: 24 44% 8%;
+    --border: 220 10% 18%;
+    --input: 220 10% 22%;
+    --ring: 221 76% 62%;
+    --overlay: 228 44% 3%;
+    color-scheme: dark;
   }
 }
 
@@ -53,7 +75,41 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01', 'calt', 'kern';
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-variation-settings: 'wdth' 92;
+  }
+  td,
+  th,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    background-color: hsl(var(--primary) / 0.28);
+    color: hsl(var(--foreground));
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.6);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

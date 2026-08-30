@@ -3,13 +3,7 @@
 import React from 'react';
 import { ChartOptions, ChartData } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -17,27 +11,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Trophy } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import '@/lib/chartjs';
+import { cn } from '@/lib/utils';
 import { ReplayData, Team } from '@/types/replay';
 import { formatDateTime } from '@/utils/formatDate';
-import { getTeamColors } from '@/utils/chartColors';
+import { getChartInk, getTeamColors, TEAM_CLASSES } from '@/utils/chartColors';
 
 interface ReplayStatsProps {
   replayData: ReplayData;
 }
 
+const TeamCard = ({ team, side }: { team: Team; side: 'blue' | 'orange' }) => (
+  <Card className={TEAM_CLASSES[side].border}>
+    <CardHeader>
+      <CardTitle className={TEAM_CLASSES[side].text}>
+        {team.name || (side === 'blue' ? 'Blue Team' : 'Orange Team')}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-baseline gap-3">
+        <p className="text-5xl font-bold tabular-nums leading-none">
+          {team.goals}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          goals · {team.shots} shots · {team.shooting_percentage.toFixed(0)}%
+        </p>
+      </div>
+      <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Saves
+          </p>
+          <p className="text-xl font-semibold tabular-nums">{team.saves}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Assists
+          </p>
+          <p className="text-xl font-semibold tabular-nums">{team.assists}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Score
+          </p>
+          <p className="text-xl font-semibold tabular-nums">{team.score}</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [selectedMetric, setSelectedMetric] = React.useState<string>('score');
 
   if (!replayData || !replayData.metrics) {
     return (
       <Card>
         <CardContent className="pt-6 text-center">
-          <p>No replay metrics available</p>
+          <p className="text-muted-foreground">
+            Ballchasing has not returned stats for this replay yet. Processing
+            usually finishes within a minute — refresh, or{' '}
+            <Link className="underline underline-offset-4" href="/replays">
+              go back to your replays
+            </Link>
+            .
+          </p>
         </CardContent>
       </Card>
     );
@@ -48,7 +90,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
   const orangeTeam = metrics.teams.orange;
 
   // Determine winner
-  let winner = null;
+  let winner: string;
   if (blueTeam.goals > orangeTeam.goals) {
     winner = blueTeam.name;
   } else if (orangeTeam.goals > blueTeam.goals) {
@@ -65,7 +107,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
     if (mvp) {
       mvpPlayer = {
         ...mvp,
-        team: team.name,
+        team: team.name || (teamColor === 'blue' ? 'Blue' : 'Orange'),
         teamColor,
       };
       break;
@@ -82,20 +124,22 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
   ];
 
   // Get chart colors based on theme
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
   const blueColors = getTeamColors('blue', isDark);
   const orangeColors = getTeamColors('orange', isDark);
+  const chartInk = getChartInk(isDark);
+
+  const selectedMetricLabel =
+    metricOptions.find((m) => m.id === selectedMetric)?.label || 'Score';
+  const blueValue = blueTeam[selectedMetric as keyof Team] as number;
+  const orangeValue = orangeTeam[selectedMetric as keyof Team] as number;
 
   const chartData: ChartData<'bar'> = {
     labels: ['Blue Team', 'Orange Team'],
     datasets: [
       {
-        label:
-          metricOptions.find((m) => m.id === selectedMetric)?.label || 'Score',
-        data: [
-          blueTeam[selectedMetric as keyof Team] as number,
-          orangeTeam[selectedMetric as keyof Team] as number,
-        ],
+        label: selectedMetricLabel,
+        data: [blueValue, orangeValue],
         backgroundColor: [blueColors.background, orangeColors.background],
         borderColor: [blueColors.border, orangeColors.border],
         borderWidth: 1,
@@ -105,38 +149,31 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
 
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
       },
       title: {
-        display: true,
-        text: `Team ${metricOptions.find((m) => m.id === selectedMetric)?.label || 'Score'} Comparison`,
-        color: theme === 'dark' ? '#e2e8f0' : '#1e293b', // text color based on theme
+        display: false,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         grid: {
-          color:
-            theme === 'dark'
-              ? 'rgba(255, 255, 255, 0.1)'
-              : 'rgba(0, 0, 0, 0.1)',
+          color: chartInk.grid,
         },
         ticks: {
-          color: theme === 'dark' ? '#e2e8f0' : '#1e293b',
+          color: chartInk.tick,
         },
       },
       x: {
         grid: {
-          color:
-            theme === 'dark'
-              ? 'rgba(255, 255, 255, 0.1)'
-              : 'rgba(0, 0, 0, 0.1)',
+          color: chartInk.grid,
         },
         ticks: {
-          color: theme === 'dark' ? '#e2e8f0' : '#1e293b',
+          color: chartInk.tick,
         },
       },
     },
@@ -154,56 +191,51 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Game Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Game Summary</CardTitle>
+          <CardTitle>Game summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="py-3">
-                <CardDescription>Final Score</CardDescription>
-              </CardHeader>
-              <CardContent className="py-1">
-                <div className="text-3xl font-bold">
-                  {blueTeam.goals} - {orangeTeam.goals}
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {winner === 'Draw'
-                    ? 'Match ended in a draw'
-                    : `${winner} wins`}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x [&>div]:md:pl-6 [&>div:first-child]:md:pl-0">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Final score
+              </p>
+              <p className="text-3xl font-bold tabular-nums mt-1">
+                {blueTeam.goals} - {orangeTeam.goals}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {winner === 'Draw' ? 'Match ended in a draw' : `${winner} wins`}
+              </p>
+            </div>
 
-            <Card>
-              <CardHeader className="py-3">
-                <CardDescription>Duration</CardDescription>
-              </CardHeader>
-              <CardContent className="py-1">
-                <div className="text-3xl font-bold">
-                  {formatDuration(metrics.duration)}
-                </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Duration
+              </p>
+              <p className="text-3xl font-bold tabular-nums mt-1">
+                {formatDuration(metrics.duration)}
+              </p>
+              {metrics.overtime && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {metrics.overtime
-                    ? `Including ${formatDuration(metrics.overtime_seconds || 0)} overtime`
-                    : 'No overtime'}
+                  Including {formatDuration(metrics.overtime_seconds || 0)}{' '}
+                  overtime
                 </p>
-              </CardContent>
-            </Card>
+              )}
+            </div>
 
-            <Card>
-              <CardHeader className="py-3">
-                <CardDescription>Map</CardDescription>
-              </CardHeader>
-              <CardContent className="py-1">
-                <div className="text-2xl font-bold truncate">
-                  {metrics.map_name}
-                </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Map
+              </p>
+              <p className="text-3xl font-bold truncate mt-1">
+                {metrics.map_name}
+              </p>
+              {metrics.playlist && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {metrics.playlist || 'Unknown playlist'}
+                  {metrics.playlist}
                   {metrics.season ? ` • Season ${metrics.season}` : ''}
                 </p>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -211,9 +243,9 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Team Comparison */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Team Comparison</CardTitle>
+          <CardTitle>Team comparison</CardTitle>
           <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Select metric" />
             </SelectTrigger>
             <SelectContent>
@@ -226,133 +258,77 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
           </Select>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
-            <Bar data={chartData} options={chartOptions} />
+          <div className="h-72 w-full">
+            <Bar
+              data={chartData}
+              options={chartOptions}
+              role="img"
+              aria-label={`${selectedMetricLabel} by team: ${
+                blueTeam.name || 'Blue Team'
+              } ${blueValue}, ${orangeTeam.name || 'Orange Team'} ${orangeValue}`}
+            />
           </div>
         </CardContent>
       </Card>
 
       {/* Team Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Blue Team */}
-        <Card className="border-blue-500 dark:border-blue-700">
-          <CardHeader>
-            <CardTitle className="text-blue-600 dark:text-blue-400">
-              {blueTeam.name || 'Blue Team'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Goals</p>
-                <p className="text-2xl font-bold">{blueTeam.goals}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Shots</p>
-                <p className="text-2xl font-bold">{blueTeam.shots}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Shooting %</p>
-                <p className="text-2xl font-bold">
-                  {blueTeam.shooting_percentage.toFixed(1)}%
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Saves</p>
-                <p className="text-2xl font-bold">{blueTeam.saves}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Assists</p>
-                <p className="text-2xl font-bold">{blueTeam.assists}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Score</p>
-                <p className="text-2xl font-bold">{blueTeam.score}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Orange Team */}
-        <Card className="border-orange-500 dark:border-orange-700">
-          <CardHeader>
-            <CardTitle className="text-orange-600 dark:text-orange-400">
-              {orangeTeam.name || 'Orange Team'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Goals</p>
-                <p className="text-2xl font-bold">{orangeTeam.goals}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Shots</p>
-                <p className="text-2xl font-bold">{orangeTeam.shots}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Shooting %</p>
-                <p className="text-2xl font-bold">
-                  {orangeTeam.shooting_percentage.toFixed(1)}%
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Saves</p>
-                <p className="text-2xl font-bold">{orangeTeam.saves}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Assists</p>
-                <p className="text-2xl font-bold">{orangeTeam.assists}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Score</p>
-                <p className="text-2xl font-bold">{orangeTeam.score}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TeamCard team={blueTeam} side="blue" />
+        <TeamCard team={orangeTeam} side="orange" />
       </div>
 
       {/* MVP */}
       {mvpPlayer && (
         <Card>
           <CardHeader>
-            <CardTitle>Most Valuable Player</CardTitle>
+            <CardTitle>MVP</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
-              <div
-                className={`flex items-center justify-center h-16 w-16 rounded-full ${
-                  mvpPlayer.teamColor === 'blue'
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                    : 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300'
-                }`}
+            <div className="flex items-baseline gap-3">
+              <span
+                className={cn(
+                  'text-lg font-medium',
+                  TEAM_CLASSES[mvpPlayer.teamColor].text
+                )}
               >
-                <Trophy className="h-8 w-8" />
+                {mvpPlayer.name}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {mvpPlayer.team}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-x-6 mt-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Score
+                </p>
+                <p className="text-xl font-semibold tabular-nums">
+                  {mvpPlayer.score}
+                </p>
               </div>
               <div>
-                <div className="font-medium text-lg">{mvpPlayer.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {mvpPlayer.team}
-                </div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-1 mt-2 text-sm">
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Score:</span>
-                    <span>{mvpPlayer.score}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Goals:</span>
-                    <span>{mvpPlayer.goals}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Assists:</span>
-                    <span>{mvpPlayer.assists}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Saves:</span>
-                    <span>{mvpPlayer.saves}</span>
-                  </div>
-                </div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Goals
+                </p>
+                <p className="text-xl font-semibold tabular-nums">
+                  {mvpPlayer.goals}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Assists
+                </p>
+                <p className="text-xl font-semibold tabular-nums">
+                  {mvpPlayer.assists}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Saves
+                </p>
+                <p className="text-xl font-semibold tabular-nums">
+                  {mvpPlayer.saves}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -362,17 +338,19 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Replay Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Replay Information</CardTitle>
+          <CardTitle>Source</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Date</p>
-              <p className="font-medium">{formatDateTime(metrics.date)}</p>
+              <p className="font-medium tabular-nums">
+                {formatDateTime(metrics.date)}
+              </p>
             </div>
             {replayData.ballchasingId && (
               <div>
-                <p className="text-sm text-muted-foreground">Ballchasing ID</p>
+                <p className="text-sm text-muted-foreground">Full stats</p>
                 <Button
                   variant="link"
                   className="p-0 h-auto font-medium"
@@ -383,7 +361,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {replayData.ballchasingId.substring(0, 12)}...
+                    View on ballchasing.com
                   </a>
                 </Button>
               </div>
