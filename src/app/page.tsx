@@ -84,7 +84,7 @@ export default function HomePage() {
               }
             }
           }}
-          className="md:col-span-3 cursor-pointer rounded-lg border border-transparent transition-colors duration-instant hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group md:col-span-3 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
           aria-label="Upload a replay"
@@ -104,7 +104,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-border bg-transparent text-zinc-50">
+            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
               <CardCurtainRevealBody className="p-8">
                 <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
                   Upload Replay
@@ -145,7 +145,7 @@ export default function HomePage() {
               <CardCurtainRevealFooter className="mt-auto" />
             </CardCurtainReveal>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 px-4 pb-1 text-sm text-muted-foreground">
             Drop a .replay file, get a playlist.
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function HomePage() {
               }
             }
           }}
-          className="md:col-span-2 md:mt-16 cursor-pointer rounded-lg border border-transparent transition-colors duration-instant hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group md:col-span-2 md:mt-16 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
           aria-label="Your replays"
@@ -187,7 +187,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            <CardCurtainReveal className="relative z-10 h-[520px] w-full border border-border bg-transparent text-zinc-50">
+            <CardCurtainReveal className="relative z-10 h-[520px] w-full border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
               <CardCurtainRevealBody className="p-8">
                 <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
                   View Your Replays
@@ -226,7 +226,7 @@ export default function HomePage() {
               <CardCurtainRevealFooter className="mt-auto" />
             </CardCurtainReveal>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 px-4 pb-1 text-sm text-muted-foreground">
             Every upload keeps its track list.
           </p>
         </div>
