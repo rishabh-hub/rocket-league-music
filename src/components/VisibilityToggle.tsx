@@ -26,8 +26,9 @@ export default function VisibilityToggle({
   initialVisibility,
   onVisibilityChange,
 }: VisibilityToggleProps) {
-  const [isPublic, setIsPublic] = useState(initialVisibility === 'public');
+  const [visibility, setVisibility] = useState(initialVisibility);
   const [isUpdating, setIsUpdating] = useState(false);
+  const isPublic = visibility === 'public';
   const supabase = createClient();
   const { toast } = useToast();
 
@@ -43,7 +44,7 @@ export default function VisibilityToggle({
 
       if (error) throw error;
 
-      setIsPublic(!isPublic);
+      setVisibility(newVisibility);
       if (onVisibilityChange) {
         onVisibilityChange(newVisibility);
       }
@@ -63,6 +64,14 @@ export default function VisibilityToggle({
       setIsUpdating(false);
     }
   };
+
+  // An unlisted replay stays out of the showcase, but its ballchasing.com link
+  // works for anyone holding it, so it cannot claim to be for the owner alone.
+  const visibilityDescription = isPublic
+    ? 'Anyone with the link can see this replay in the showcase.'
+    : visibility === 'unlisted'
+      ? 'Unlisted: not in the showcase, but anyone with the ballchasing.com link can open it.'
+      : 'Only you can see this replay.';
 
   return (
     <div className="flex items-center space-x-2">
@@ -95,11 +104,7 @@ export default function VisibilityToggle({
               </Label>
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            {isPublic
-              ? 'Anyone with the link can see this replay in the showcase.'
-              : 'Only you can see this replay.'}
-          </TooltipContent>
+          <TooltipContent>{visibilityDescription}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>

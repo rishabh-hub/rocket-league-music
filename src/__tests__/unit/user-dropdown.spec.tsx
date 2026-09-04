@@ -34,7 +34,8 @@ jest.mock('@/app/login/action', () => ({
 jest.mock('@/paraglide/messages', () => ({
   my_account: () => 'Account',
   log_out: () => 'Log Out',
-  upgrade_to_pro_cta: () => 'Go Pro — unlimited replays',
+  pro_plan_coming_soon: () => 'Pro plan coming soon',
+  pro_plan_coming_soon_note: () => 'Nothing is behind a paywall yet.',
   you_are_a_pro: () => 'Pro plan active',
 }));
 
@@ -161,14 +162,30 @@ describe('UserDropdown Component', () => {
     expect(images[1]).toHaveAttribute('alt', defaultProps.userName);
   });
 
-  it('shows the Pro upgrade button for non-pro users', () => {
+  it('shows the Pro plan as unavailable, disabled, for non-pro users', () => {
     render(<UserDropdown {...defaultProps} isProUser={false} />);
 
-    const upgradeButton = screen.getByRole('button', {
-      name: 'Go Pro — unlimited replays',
+    const proButton = screen.getByRole('button', {
+      name: 'Pro plan coming soon',
     });
-    expect(upgradeButton).toBeInTheDocument();
-    expect(upgradeButton).not.toBeDisabled();
+    expect(proButton).toBeInTheDocument();
+    expect(proButton).toBeDisabled();
+    expect(
+      screen.getByText('Nothing is behind a paywall yet.')
+    ).toBeInTheDocument();
+  });
+
+  it('does not start a checkout when the disabled Pro button is clicked', () => {
+    const mockFetch = jest.fn();
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    render(<UserDropdown {...defaultProps} isProUser={false} />);
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Pro plan coming soon' })
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('shows the active Pro state (disabled) for pro users', () => {
@@ -177,6 +194,9 @@ describe('UserDropdown Component', () => {
     const proButton = screen.getByRole('button', { name: 'Pro plan active' });
     expect(proButton).toBeInTheDocument();
     expect(proButton).toBeDisabled();
+    expect(
+      screen.queryByText('Nothing is behind a paywall yet.')
+    ).not.toBeInTheDocument();
   });
 
   it('calls signOut action and refreshes router on log out click', async () => {

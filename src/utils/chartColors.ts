@@ -25,15 +25,15 @@ export function getTeamColors(
   const colors = {
     blue: {
       background: isDark
-        ? 'hsla(221, 76%, 62%, 0.8)'
+        ? 'hsla(221, 76%, 64.5%, 0.8)'
         : 'hsla(221, 72%, 46%, 0.7)',
-      border: isDark ? 'hsla(221, 76%, 62%, 1)' : 'hsla(221, 72%, 46%, 1)',
+      border: isDark ? 'hsla(221, 76%, 64.5%, 1)' : 'hsla(221, 72%, 46%, 1)',
     },
     orange: {
       background: isDark
         ? 'hsla(22, 92%, 60%, 0.8)'
-        : 'hsla(20, 84%, 44%, 0.7)',
-      border: isDark ? 'hsla(22, 92%, 60%, 1)' : 'hsla(20, 84%, 44%, 1)',
+        : 'hsla(20, 84%, 37.5%, 0.7)',
+      border: isDark ? 'hsla(22, 92%, 60%, 1)' : 'hsla(20, 84%, 37.5%, 1)',
     },
   };
   return colors[team];

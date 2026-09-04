@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Variants, motion } from 'motion/react';
 import { Replay } from '@/types/replay';
 import { formatDate } from '@/utils/formatDate';
+import { matchSummary } from '@/utils/matchSummary';
 
 // A replay carries the New badge for this long after it is uploaded.
 const NEW_REPLAY_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -54,19 +55,6 @@ export default function ShowcasePage() {
   useEffect(() => {
     fetchShowcaseReplays();
   }, [fetchShowcaseReplays]);
-
-  // Get game summary from the metrics if available
-  const getGameSummary = (replay: Replay) => {
-    if (replay.metrics?.blue?.name && replay.metrics?.orange?.name) {
-      return `${replay.metrics.blue.name} ${replay.metrics.blue.goals} - ${replay.metrics.orange.goals} ${replay.metrics.orange.name}`;
-    }
-    return replay.file_name;
-  };
-
-  // Extract map name if available
-  const getMapName = (replay: Replay) => {
-    return replay.metrics?.map_name || null;
-  };
 
   // Card variants for framer-motion
   const container: Variants = {
@@ -141,7 +129,7 @@ export default function ShowcasePage() {
       ) : (
         <motion.div variants={container} initial="hidden" animate="show">
           {replays.map((replay) => {
-            const mapName = getMapName(replay);
+            const summary = matchSummary(replay);
             const isNew =
               Date.now() - new Date(replay.created_at).getTime() <
               NEW_REPLAY_WINDOW_MS;
@@ -161,18 +149,18 @@ export default function ShowcasePage() {
                       }}
                       role="button"
                       tabIndex={0}
-                      aria-label={`View analysis for ${getGameSummary(replay)}`}
+                      aria-label={`View analysis for ${summary.primary}`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-lg font-semibold mb-1">
-                            {getGameSummary(replay)}
+                            {summary.primary}
                           </h3>
-                          <div className="flex items-center text-sm text-muted-foreground mb-2">
-                            {mapName && (
+                          <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-2">
+                            {summary.secondary && (
                               <>
-                                <span>{mapName}</span>
-                                <span className="mx-2">•</span>
+                                <span>{summary.secondary}</span>
+                                <span className="mx-2">·</span>
                               </>
                             )}
                             <span>{formatDate(replay.created_at)}</span>

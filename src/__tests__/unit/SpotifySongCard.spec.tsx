@@ -131,15 +131,25 @@ describe('SpotifySongCard', () => {
       'outline'
     );
 
-    // "Competition" is in matched_criteria, so its theme badge is filled
+    // "Competition" is in matched_criteria, so its theme badge is tinted
     expect(screen.getByText('Competition')).toHaveAttribute(
       'data-variant',
-      'default'
+      'success'
     );
     expect(screen.getByText('Victory')).toHaveAttribute(
       'data-variant',
       'secondary'
     );
+  });
+
+  it('carries chip colour on the badge variant, never in className', () => {
+    render(<SpotifySongCard song={baseSong} index={0} />);
+
+    // A hand-written fill on top of a variant lets the variant's own hover
+    // state survive tailwind-merge and paint over the label.
+    for (const label of ['Energetic', 'Uplifting', 'Competition', 'Victory']) {
+      expect(screen.getByText(label).className).toBe('text-xs');
+    }
   });
 
   it('does not reprint matched criteria as a summary line', () => {

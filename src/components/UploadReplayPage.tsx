@@ -217,7 +217,7 @@ const UploadReplayPage = () => {
     <div className="container max-w-md px-4 py-8">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-medium tracking-tight">
+          <CardTitle className="text-2xl tracking-tight">
             Upload a replay
           </CardTitle>
         </CardHeader>

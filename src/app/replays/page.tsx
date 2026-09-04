@@ -20,21 +20,69 @@ import {
   Upload,
   FileUp,
   Globe,
+  Link2,
   Lock,
   AlertTriangle,
+  LucideIcon,
 } from 'lucide-react';
 import { Replay } from '@/types/replay';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatDateTime } from '@/utils/formatDate';
+import { matchSummary } from '@/utils/matchSummary';
 
 /**
- * Builds the scoreline for a processed replay, falling back to the file name
- * for replays whose stats have not come back yet.
+ * How each stored visibility value reads to the person who uploaded the
+ * replay. Unlisted is its own state: it stays out of the showcase, but the
+ * ballchasing.com link works for anyone who has it.
  */
-const matchLabel = (replay: Replay) =>
-  replay.metrics?.blue?.name && replay.metrics?.orange?.name
-    ? `${replay.metrics.blue.name} ${replay.metrics.blue.goals}–${replay.metrics.orange.goals} ${replay.metrics.orange.name}`
-    : replay.file_name;
+const VISIBILITY_STATES: Record<
+  string,
+  { icon: LucideIcon; label: string; detail: string }
+> = {
+  public: {
+    icon: Globe,
+    label: 'Public',
+    detail: 'Listed in the showcase for everyone.',
+  },
+  unlisted: {
+    icon: Link2,
+    label: 'Unlisted',
+    detail: 'Anyone with the ballchasing.com link can open it.',
+  },
+  private: {
+    icon: Lock,
+    label: 'Private',
+    detail: 'Only you can see this replay.',
+  },
+};
+
+/**
+ * Renders a replay's stored visibility. An unrecognised value is shown as
+ * itself rather than being flattened into one of the known states.
+ */
+function VisibilityLabel({ visibility }: { visibility: string }) {
+  const state = VISIBILITY_STATES[visibility];
+
+  if (!state) {
+    return (
+      <span className="text-xs capitalize text-muted-foreground">
+        {visibility}
+      </span>
+    );
+  }
+
+  const Icon = state.icon;
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+      title={state.detail}
+    >
+      <Icon className="h-3 w-3" />
+      {state.label}
+    </span>
+  );
+}
 
 export default function ReplaysPage() {
   const router = useRouter();
@@ -163,44 +211,40 @@ export default function ReplaysPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {replays.map((replay) => (
-                  <TableRow key={replay.id}>
-                    <TableCell className="font-medium tabular-nums">
-                      {matchLabel(replay)}
-                      <div className="text-xs font-normal text-muted-foreground">
-                        {replay.metrics?.map_name ?? replay.file_name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={replay.status} />
-                    </TableCell>
-                    <TableCell>
-                      {replay.visibility === 'public' ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                          <Globe className="h-3 w-3" />
-                          Public
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                          <Lock className="h-3 w-3" />
-                          Private
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">
-                      {formatDateTime(replay.created_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/replays/${replay.id}`)}
-                      >
-                        View analysis
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {replays.map((replay) => {
+                  const summary = matchSummary(replay);
+
+                  return (
+                    <TableRow key={replay.id}>
+                      <TableCell className="font-medium tabular-nums">
+                        {summary.primary}
+                        {summary.secondary && (
+                          <div className="text-xs font-normal text-muted-foreground">
+                            {summary.secondary}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={replay.status} />
+                      </TableCell>
+                      <TableCell>
+                        <VisibilityLabel visibility={replay.visibility} />
+                      </TableCell>
+                      <TableCell className="tabular-nums text-muted-foreground">
+                        {formatDateTime(replay.created_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/replays/${replay.id}`)}
+                        >
+                          View analysis
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>

@@ -144,18 +144,22 @@ export default function SongRecommendations({
     }
   };
 
-  const getCategoryColor = (category: string) => {
+  // Category strength is a three-step ladder of badge variants: an accent tint
+  // for the top rung, a filled grey for the middle, an outline for the rest.
+  const getCategoryVariant = (
+    category: string
+  ): 'success' | 'secondary' | 'outline' => {
     switch (category.toLowerCase()) {
       case 'high':
       case 'excellent':
-        return 'bg-primary/20 text-primary border-primary/30';
+        return 'success';
       case 'medium':
       case 'good':
-        return 'bg-primary/10 text-primary/90 border-primary/20';
+        return 'secondary';
       case 'low':
       case 'poor':
       default:
-        return 'bg-muted text-muted-foreground border-border';
+        return 'outline';
     }
   };
 
@@ -267,10 +271,7 @@ export default function SongRecommendations({
                                   {key}
                                 </span>
                               </div>
-                              <Badge
-                                className={getCategoryColor(value)}
-                                variant="secondary"
-                              >
+                              <Badge variant={getCategoryVariant(value)}>
                                 {value}
                               </Badge>
                             </div>
@@ -378,7 +379,10 @@ export default function SongRecommendations({
                               // Trigger contextual feedback when user engages with Spotify
                               onSpotifyIntegrationUsed?.();
                             } else {
-                              setCurrentlyPlaying(null);
+                              // Only the card holding the highlight may clear it
+                              setCurrentlyPlaying((current) =>
+                                current === songIndex ? null : current
+                              );
                             }
                           }}
                         />

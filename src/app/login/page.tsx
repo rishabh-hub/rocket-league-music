@@ -46,7 +46,7 @@ export default async function LoginPage({
             height={40}
             className="mb-2 rounded-md"
           />
-          <CardTitle className="text-foreground text-xl normal-case tracking-tight">
+          <CardTitle className="text-xl tracking-tight">
             Sign in to ReplayRhythms
           </CardTitle>
           <CardDescription>

@@ -17,6 +17,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import * as m from '@/paraglide/messages';
 
+// The Pro purchase path is closed: nothing in the app meters replays, so there
+// is no benefit to sell. Turning it on means shipping the metering first, and
+// giving the button an upgrade label to go with it.
+const PRO_CHECKOUT_ENABLED = false;
+
 interface UserDropdownProps {
   session: string;
   isProUser?: boolean;
@@ -128,8 +133,11 @@ export const UserDropdown = ({
         </div>
         <div className="px-2 pb-2">
           <Button
-            onClick={handleCreateCheckoutSession}
-            disabled={isProUser || isPending}
+            onClick={
+              PRO_CHECKOUT_ENABLED ? handleCreateCheckoutSession : undefined
+            }
+            disabled={!PRO_CHECKOUT_ENABLED || isProUser || isPending}
+            variant="secondary"
             className="w-full"
           >
             {isProUser ? (
@@ -139,10 +147,15 @@ export const UserDropdown = ({
                 {isPending && (
                   <Icons.loader className="mr-2 size-4 animate-spin" />
                 )}
-                {m.upgrade_to_pro_cta()}
+                {m.pro_plan_coming_soon()}
               </>
             )}
           </Button>
+          {!isProUser && (
+            <p className="text-muted-foreground mt-1.5 text-center text-xs">
+              {m.pro_plan_coming_soon_note()}
+            </p>
+          )}
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>

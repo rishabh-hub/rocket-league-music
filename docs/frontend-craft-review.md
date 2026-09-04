@@ -11,38 +11,67 @@ skeptic instructed to refute it and to default to *refuted* when uncertain.
 **46 findings entered verification. 29 were refuted, 17 survived.** A finding below has
 been checked against the real code by an adversary trying to kill it.
 
-Nothing in this document has been fixed. It is a list, not a changelog.
+This document is now both the list and the ledger. The Status column in the table below records
+what has landed on `redesign/de-llm-ify`; everything under "Detail" is preserved exactly as it was
+written at review time, including token values and line numbers that a fix has since moved. Read
+the Status column for current state, and the prose for the argument that was made.
+
+Finding 2 needs no further debate: its data shape was independently confirmed against a production
+`metrics` row supplied by the owner, which nests the teams under `metrics.teams.blue` /
+`metrics.teams.orange` exactly as the finding claims.
+
+### Found while remediating
+
+Two defects of the same family as findings 10–12 that no reviewer raised. The accessibility lens
+audited the `--primary` and `--signal` tints and stopped there, so the `--destructive` tints were
+never measured: `text-destructive` on `bg-destructive/10` came to 4.447:1 over `--background` in
+light and 4.191:1 over `--card` in dark, both under the 4.5:1 floor for the small text they carry
+in `alert.tsx`, `StatusBadge.tsx` and `SongRecommendations.tsx`. Same cause as the confirmed
+findings — this commit replaced opaque `red-900`-style chips with translucent tints — and the same
+remedy: `--destructive` moved 46% → 45% in `:root` and 56% → 59% in `.dark`, the smallest steps
+that clear the floor on both `--card` and `--background`.
+
+`src/__tests__/unit/token-contrast.spec.ts` now parses `globals.css` at run time and asserts every
+ink/surface/alpha combination the app actually renders, `--destructive` included, so a future token
+edit that drops a pairing below AA fails the suite rather than shipping.
 
 ---
 
 ## Confirmed findings
 
-| # | Severity | Lens | Location | Defect |
-|---|---|---|---|---|
-| 1 | high | copy | `src/messages/en.json:6` | The Pro upgrade button now promises "unlimited replays", a benefit the codebase does not gate — nothing anywhere counts or limits replays, so the paid claim is false. |
-| 2 | medium | correctness | `src/app/replays/page.tsx:35` | The new `matchLabel` helper reads the team objects from `replay.metrics.blue` / `replay.metrics.orange`, but stored metrics nest teams under `metrics.teams.blue` / `metrics.teams.orange`, so… |
-| 3 | medium | correctness | `src/components/UploadReplayPage.tsx:220` | This CardTitle call site was not updated for the component's changed default classes, so the upload page's main heading renders uppercase in muted grey. |
-| 4 | medium | correctness | `src/components/feedback/FeedbackWidget.tsx:292` | The newly added localStorage read and write are unguarded, and this component is mounted in the root layout inside the app-wide ErrorBoundary, so a storage exception replaces every page with… |
-| 5 | medium | simplicity | `src/components/ui/card.tsx:39` | CardTitle's new default bakes in a small-caps eyebrow treatment (`text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground`), which every call site that wants a real heading m… |
-| 6 | medium | design-system | `src/components/SpotifySongCard.tsx:187` | A matched "theme" chip is given `variant="default"` (whose cva string carries `hover:bg-primary/80`) and then has its resting fill overridden to `bg-primary/15 text-primary`, so on hover the… |
-| 7 | medium | design-system | `src/components/UploadReplayPage.tsx:220` | CardTitle's base was changed to an eyebrow style (`text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground`), and this call site overrides only size/weight/tracking — so the … |
-| 8 | medium | accessibility | `src/components/ui/button.tsx:8` | Every Button kills its native outline (`focus-visible:outline-none`) and replaces it with a 3px ring at 45% alpha, which composites to 2.07:1 (light) / 1.97:1 (dark) against the surface behi… |
-| 9 | medium | accessibility | `src/styles/globals.css:101` | The new global focus outline `2px solid hsl(var(--ring) / 0.6)` measures 2.74:1 (light) / 2.63:1 (dark) against the page background — below the 3:1 required for a focus indicator, so every c… |
-| 10 | medium | accessibility | `src/utils/chartColors.ts:68` | `TEAM_CLASSES.orange` renders opponent-team text in `text-signal`, which measures 4.36:1 on `--card` in light mode as plain text and 3.57:1 inside the `bg-signal/15` chip — both below the 4.… |
-| 11 | medium | accessibility | `src/components/StatusBadge.tsx:38` | The rewritten status chips use `text-primary` on `bg-primary/10`–`/15` tints, which measure 4.17:1 and 4.47:1 on `--card` in dark mode — under 4.5:1 for the 11px badge text. |
-| 12 | medium | accessibility | `src/components/SongRecommendations.tsx:151` | `getCategoryColor` was rewritten onto primary tints that measure 3.87:1 and 3.88:1 on `--card` in dark mode for the high/excellent and medium/good categories — both under 4.5:1 for the 11px … |
-| 13 | medium | goal | `src/components/UploadReplayPage.tsx:220` | The upload page's only heading renders as 24px UPPERCASE muted grey, because the CardTitle override forgets the `normal-case` and `text-foreground` that the new CardTitle base style requires… |
-| 14 | low | correctness | `src/components/SpotifySongCard.tsx:67` | `toggleExpanded` now reports collapse to the parent unconditionally, but the parent's handler clears `currentlyPlaying` without checking which card sent the event, so collapsing one card wip… |
-| 15 | low | design-system | `src/app/page.tsx:87` | Both hero cards put `rounded-lg` and a hover/focus border on a wrapper that has no `overflow-hidden`, while the full-bleed `<Image fill>` inside it and the `CardCurtainReveal` border inside … |
-| 16 | low | accessibility | `src/components/ui/input.tsx:13` | Placeholder text was weakened from `text-muted-foreground` to `text-muted-foreground/70`, dropping it to 2.86:1 on `bg-surface` in light mode — a regression well below the 4.5:1 required for… |
-| 17 | low | copy | `src/app/replays/page.tsx:186` | The rewritten visibility column collapses three states to two and labels an `unlisted` replay "Private" behind a lock icon — a regression, since the code it replaced rendered the real value. |
+| # | Status | Severity | Lens | Location | Defect |
+|---|---|---|---|---|---|
+| 1 | Fixed — checkout gated off | high | copy | `src/messages/en.json:6` | The Pro upgrade button now promises "unlimited replays", a benefit the codebase does not gate — nothing anywhere counts or limits replays, so the paid claim is false. |
+| 2 | Fixed — shared `matchSummary` | medium | correctness | `src/app/replays/page.tsx:35` | The new `matchLabel` helper reads the team objects from `replay.metrics.blue` / `replay.metrics.orange`, but stored metrics nest teams under `metrics.teams.blue` / `metrics.teams.orange`, so… |
+| 3 | Fixed (CardTitle) | medium | correctness | `src/components/UploadReplayPage.tsx:220` | This CardTitle call site was not updated for the component's changed default classes, so the upload page's main heading renders uppercase in muted grey. |
+| 4 | Fixed — storage guarded | medium | correctness | `src/components/feedback/FeedbackWidget.tsx:292` | The newly added localStorage read and write are unguarded, and this component is mounted in the root layout inside the app-wide ErrorBoundary, so a storage exception replaces every page with… |
+| 5 | Fixed (CardTitle) | medium | simplicity | `src/components/ui/card.tsx:39` | CardTitle's new default bakes in a small-caps eyebrow treatment (`text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground`), which every call site that wants a real heading m… |
+| 6 | Fixed — hover dropped, variants used | medium | design-system | `src/components/SpotifySongCard.tsx:187` | A matched "theme" chip is given `variant="default"` (whose cva string carries `hover:bg-primary/80`) and then has its resting fill overridden to `bg-primary/15 text-primary`, so on hover the… |
+| 7 | Fixed (CardTitle) | medium | design-system | `src/components/UploadReplayPage.tsx:220` | CardTitle's base was changed to an eyebrow style (`text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground`), and this call site overrides only size/weight/tracking — so the … |
+| 8 | Fixed (tokens) | medium | accessibility | `src/components/ui/button.tsx:8` | Every Button kills its native outline (`focus-visible:outline-none`) and replaces it with a 3px ring at 45% alpha, which composites to 2.07:1 (light) / 1.97:1 (dark) against the surface behi… |
+| 9 | Fixed (tokens) | medium | accessibility | `src/styles/globals.css:101` | The new global focus outline `2px solid hsl(var(--ring) / 0.6)` measures 2.74:1 (light) / 2.63:1 (dark) against the page background — below the 3:1 required for a focus indicator, so every c… |
+| 10 | Fixed (tokens) | medium | accessibility | `src/utils/chartColors.ts:68` | `TEAM_CLASSES.orange` renders opponent-team text in `text-signal`, which measures 4.36:1 on `--card` in light mode as plain text and 3.57:1 inside the `bg-signal/15` chip — both below the 4.… |
+| 11 | Fixed (tokens) | medium | accessibility | `src/components/StatusBadge.tsx:38` | The rewritten status chips use `text-primary` on `bg-primary/10`–`/15` tints, which measure 4.17:1 and 4.47:1 on `--card` in dark mode — under 4.5:1 for the 11px badge text. |
+| 12 | Fixed — variants, `/20` and `/90` gone | medium | accessibility | `src/components/SongRecommendations.tsx:151` | `getCategoryColor` was rewritten onto primary tints that measure 3.87:1 and 3.88:1 on `--card` in dark mode for the high/excellent and medium/good categories — both under 4.5:1 for the 11px … |
+| 13 | Fixed (CardTitle) | medium | goal | `src/components/UploadReplayPage.tsx:220` | The upload page's only heading renders as 24px UPPERCASE muted grey, because the CardTitle override forgets the `normal-case` and `text-foreground` that the new CardTitle base style requires… |
+| 14 | Fixed — index-aware | low | correctness | `src/components/SpotifySongCard.tsx:67` | `toggleExpanded` now reports collapse to the parent unconditionally, but the parent's handler clears `currentlyPlaying` without checking which card sent the event, so collapsing one card wip… |
+| 15 | Fixed — radius on the clipping element | low | design-system | `src/app/page.tsx:87` | Both hero cards put `rounded-lg` and a hover/focus border on a wrapper that has no `overflow-hidden`, while the full-bleed `<Image fill>` inside it and the `CardCurtainReveal` border inside … |
+| 16 | Fixed (tokens) | low | accessibility | `src/components/ui/input.tsx:13` | Placeholder text was weakened from `text-muted-foreground` to `text-muted-foreground/70`, dropping it to 2.86:1 on `bg-surface` in light mode — a regression well below the 4.5:1 required for… |
+| 17 | Fixed — three states | low | copy | `src/app/replays/page.tsx:186` | The rewritten visibility column collapses three states to two and labels an `unlisted` replay "Private" behind a lock icon — a regression, since the code it replaced rendered the real value. |
+
+Status reads one of two ways. **Fixed** means the change has landed on this branch, with the
+verification recorded in the report of the package named in brackets. The placeholder token means
+the row is still waiting on its package report — not that the finding was dismissed, and not that
+nothing has happened, since a shared primitive may already carry part of the fix.
 
 ### Themes
 
-**One root cause produces four of the seventeen.** `CardTitle` was redefined as a small-caps
-eyebrow, so any call site wanting a real heading must opt out of it. `UploadReplayPage.tsx:220`
-and `FeedbackWidget.tsx:326` do not, and the upload page's only heading renders as 24px
-uppercase muted grey. Findings 3, 5, 7 and 13 are all this. Fixing the primitive fixes all four.
+**One root cause produced four of the seventeen.** `CardTitle` had been redefined as a small-caps
+eyebrow, so any call site wanting a real heading had to opt out of it. `UploadReplayPage.tsx:220`
+and `FeedbackWidget.tsx:326` did not, and the upload page's only heading rendered as 24px
+uppercase muted grey. Findings 3, 5, 7 and 13 are all that one defect, and fixing the primitive
+fixed all four: `CardTitle` is a neutral heading again, and the eyebrow treatment lives in a
+sibling export, `CardSectionLabel`, which the stat cards call directly. No call site opts out.
 
 **Five are contrast arithmetic on the new palette.** The reviewer computed ratios rather than
 estimating, and cleared the core ramp: `--muted-foreground` passes everywhere it lands

@@ -3,7 +3,12 @@
 import React from 'react';
 import { ChartOptions, ChartData } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardSectionLabel,
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -311,7 +316,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{statConfig.title}</CardTitle>
+          <CardSectionLabel>{statConfig.title}</CardSectionLabel>
           <Select value={selectedStat} onValueChange={setSelectedStat}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Select metric" />
@@ -340,7 +345,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ replayData, statType }) => {
       {/* Player Comparison Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Every player</CardTitle>
+          <CardSectionLabel>Every player</CardSectionLabel>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

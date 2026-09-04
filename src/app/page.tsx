@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { Loader2, ArrowUpRight } from 'lucide-react';
+
+import { CopyablePath } from '@/components/CopyablePath';
 import {
   CardCurtain,
   CardCurtainReveal,
@@ -57,8 +59,10 @@ export default function HomePage() {
           off ballchasing.com and hands back songs that fit.
         </p>
         <p className="text-muted-foreground mt-2 max-w-lg text-sm">
-          On Windows, Rocket League saves every match to Documents\My
-          Games\Rocket League\TAGame\Demos.
+          On Windows, Rocket League saves every match to{' '}
+          <CopyablePath
+            path={'Documents\\My Games\\Rocket League\\TAGame\\Demos'}
+          />
         </p>
         <div className="self-start">
           <ShowcaseButton />
@@ -84,13 +88,13 @@ export default function HomePage() {
               }
             }
           }}
-          className="group md:col-span-3 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group md:col-span-3 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
           aria-label="Upload a replay"
         >
           <div className="relative">
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 overflow-hidden rounded-xl">
               <Image
                 fill
                 alt="A Rocket League car mid-air in an arena"
@@ -104,7 +108,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            <CardCurtainReveal className="relative z-10 h-[600px] w-full border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
+            <CardCurtainReveal className="relative z-10 h-[600px] w-full rounded-xl border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
               <CardCurtainRevealBody className="p-8">
                 <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
                   Upload Replay
@@ -168,13 +172,13 @@ export default function HomePage() {
               }
             }
           }}
-          className="group md:col-span-2 md:mt-16 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group md:col-span-2 md:mt-16 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           role="button"
           tabIndex={0}
           aria-label="Your replays"
         >
           <div className="relative">
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 overflow-hidden rounded-xl">
               <Image
                 fill
                 alt="A ReplayRhythms stats screen for a finished match"
@@ -187,7 +191,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--overlay))] via-[hsl(var(--overlay)_/_0.9)] to-[hsl(var(--overlay)_/_0.5)]"></div>
             </div>
 
-            <CardCurtainReveal className="relative z-10 h-[520px] w-full border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
+            <CardCurtainReveal className="relative z-10 h-[520px] w-full rounded-xl border border-border bg-transparent text-zinc-50 transition-colors duration-instant group-hover:border-primary/50">
               <CardCurtainRevealBody className="p-8">
                 <CardCurtainRevealTitle className="text-3xl font-medium tracking-tight mb-6 text-zinc-50">
                   View Your Replays

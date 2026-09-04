@@ -165,7 +165,7 @@ export default function SpotifySongCard({
               <Badge
                 key={`mood-${idx}`}
                 variant={isMatchedCriteria(mood) ? 'default' : 'outline'}
-                className={`text-xs ${isMatchedCriteria(mood) ? 'bg-primary text-primary-foreground border-primary' : ''}`}
+                className="text-xs"
               >
                 {mood}
               </Badge>
@@ -183,8 +183,8 @@ export default function SpotifySongCard({
             {themes.slice(0, listCap).map((theme, idx) => (
               <Badge
                 key={`theme-${idx}`}
-                variant={isMatchedCriteria(theme) ? 'default' : 'secondary'}
-                className={`text-xs ${isMatchedCriteria(theme) ? 'bg-primary/15 text-primary border-primary/30' : ''}`}
+                variant={isMatchedCriteria(theme) ? 'success' : 'secondary'}
+                className="text-xs"
               >
                 {theme}
               </Badge>

@@ -3,7 +3,12 @@
 import React from 'react';
 import { ChartOptions, ChartData } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardSectionLabel,
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -27,9 +32,9 @@ interface ReplayStatsProps {
 const TeamCard = ({ team, side }: { team: Team; side: 'blue' | 'orange' }) => (
   <Card className={TEAM_CLASSES[side].border}>
     <CardHeader>
-      <CardTitle className={TEAM_CLASSES[side].text}>
+      <CardSectionLabel className={TEAM_CLASSES[side].text}>
         {team.name || (side === 'blue' ? 'Blue Team' : 'Orange Team')}
-      </CardTitle>
+      </CardSectionLabel>
     </CardHeader>
     <CardContent>
       <div className="flex items-baseline gap-3">
@@ -191,7 +196,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Game Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Game summary</CardTitle>
+          <CardSectionLabel>Game summary</CardSectionLabel>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x [&>div]:md:pl-6 [&>div:first-child]:md:pl-0">
@@ -243,7 +248,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Team Comparison */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Team comparison</CardTitle>
+          <CardSectionLabel>Team comparison</CardSectionLabel>
           <Select value={selectedMetric} onValueChange={setSelectedMetric}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Select metric" />
@@ -281,7 +286,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {mvpPlayer && (
         <Card>
           <CardHeader>
-            <CardTitle>MVP</CardTitle>
+            <CardSectionLabel>MVP</CardSectionLabel>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-3">
@@ -338,7 +343,7 @@ const ReplayStats: React.FC<ReplayStatsProps> = ({ replayData }) => {
       {/* Replay Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Source</CardTitle>
+          <CardSectionLabel>Source</CardSectionLabel>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

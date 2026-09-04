@@ -51,6 +51,27 @@ interface FeedbackWidgetProps {
 const DISMISS_MEMORY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const DISMISSED_AT_KEY = 'feedback-dismissed-at';
 
+// A browser set to block site data, and a sandboxed iframe, throw on any
+// localStorage access at all. Every read and write goes through these two
+// guards so a storage failure can never escape into React's commit phase and
+// take the page down with it.
+function readDismissedAt(): number {
+  try {
+    return Number(localStorage.getItem(DISMISSED_AT_KEY));
+  } catch {
+    // Storage is unreadable, so treat this visitor as never having dismissed.
+    return 0;
+  }
+}
+
+function writeDismissedAt(timestamp: number) {
+  try {
+    localStorage.setItem(DISMISSED_AT_KEY, String(timestamp));
+  } catch {
+    // Storage is unwritable or full; the dismissal still holds for this session.
+  }
+}
+
 const feedbackTypes = [
   {
     value: 'bug' as const,
@@ -62,7 +83,7 @@ const feedbackTypes = [
     value: 'feature' as const,
     label: 'Feature idea',
     icon: Lightbulb,
-    description: 'Suggest a new feature',
+    description: "Something that should exist and doesn't",
   },
   {
     value: 'improvement' as const,
@@ -80,7 +101,7 @@ const feedbackTypes = [
     value: 'general' as const,
     label: 'Something else',
     icon: MessageCircle,
-    description: 'Anything else',
+    description: 'Anything the other options miss',
   },
 ];
 
@@ -110,7 +131,7 @@ export function FeedbackWidget({
   useEffect(() => {
     if (isDismissed || hasAutoShown) return;
 
-    const dismissedAt = Number(localStorage.getItem(DISMISSED_AT_KEY));
+    const dismissedAt = readDismissedAt();
     if (dismissedAt && Date.now() - dismissedAt < DISMISS_MEMORY_MS) return;
 
     const timer = setTimeout(() => {
@@ -225,8 +246,8 @@ export function FeedbackWidget({
       if (!response.ok) {
         if (response.status === 401) {
           toast({
-            title: 'Sign in required',
-            description: 'Please sign in to submit feedback.',
+            title: 'Sign in to send feedback',
+            description: 'Taking you to the sign-in page.',
             variant: 'destructive',
           });
           router.push('/login');
@@ -273,8 +294,8 @@ export function FeedbackWidget({
     } catch (error) {
       console.error('Error submitting feedback:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to submit feedback. Please try again.',
+        title: "That didn't send",
+        description: 'Try again in a moment.',
         variant: 'destructive',
       });
     } finally {
@@ -289,7 +310,7 @@ export function FeedbackWidget({
       autoTriggered: showAutoPrompt,
     });
 
-    localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()));
+    writeDismissedAt(Date.now());
     setIsDismissed(true);
     setShowAutoPrompt(false);
     setIsOpen(false);

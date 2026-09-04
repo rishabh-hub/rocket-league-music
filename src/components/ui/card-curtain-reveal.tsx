@@ -23,8 +23,17 @@ const curtainVariants: Variants = {
   },
 };
 
+/* Fallback used until the revealed block has been measured, and if
+   ResizeObserver is unavailable. Matches the previous hard-coded offset. */
+const DEFAULT_REVEAL_OFFSET = 170;
+
 interface CardCurtainRevealContextValue {
   isMouseIn: boolean;
+  /* Height of the block that is hidden at rest, including its bottom margin.
+     The title rests exactly this far down, so it lands in the space the
+     description will occupy instead of on top of whatever follows it. */
+  revealOffset: number;
+  registerRevealNode: (node: HTMLElement | null) => void;
 }
 const CardCurtainRevealContext = React.createContext<
   CardCurtainRevealContextValue | undefined
@@ -47,8 +56,31 @@ const CardCurtainReveal = React.forwardRef<
   const handleMouseEnter = React.useCallback(() => setIsMouseIn(true), []);
   const handleMouseLeave = React.useCallback(() => setIsMouseIn(false), []);
 
+  const [revealNode, setRevealNode] = React.useState<HTMLElement | null>(null);
+  const [revealOffset, setRevealOffset] = React.useState(DEFAULT_REVEAL_OFFSET);
+
+  React.useEffect(() => {
+    if (!revealNode || typeof ResizeObserver === 'undefined') return;
+
+    const measure = () => {
+      const marginBottom =
+        parseFloat(window.getComputedStyle(revealNode).marginBottom) || 0;
+      setRevealOffset(revealNode.offsetHeight + marginBottom);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(revealNode);
+    return () => observer.disconnect();
+  }, [revealNode]);
+
+  const contextValue = React.useMemo(
+    () => ({ isMouseIn, revealOffset, registerRevealNode: setRevealNode }),
+    [isMouseIn, revealOffset]
+  );
+
   return (
-    <CardCurtainRevealContext.Provider value={{ isMouseIn }}>
+    <CardCurtainRevealContext.Provider value={contextValue}>
       <div
         ref={ref}
         className={cn(
@@ -98,13 +130,13 @@ const CardCurtainRevealTitle = React.forwardRef<
   HTMLHeadingElement,
   HTMLMotionProps<'h2'>
 >(({ className, ...props }, ref) => {
-  const { isMouseIn } = useCardCurtainRevealContext();
+  const { isMouseIn, revealOffset } = useCardCurtainRevealContext();
 
   return (
     <motion.h2
       ref={ref}
       className={className}
-      animate={isMouseIn ? { y: 0 } : { y: 170 }}
+      animate={isMouseIn ? { y: 0 } : { y: revealOffset }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       {...props}
     />
@@ -136,11 +168,15 @@ const CardCurtainRevealDescription = React.forwardRef<
   HTMLDivElement,
   HTMLMotionProps<'div'>
 >(({ className, ...props }, ref) => {
-  const { isMouseIn } = useCardCurtainRevealContext();
+  const { isMouseIn, registerRevealNode } = useCardCurtainRevealContext();
 
   return (
     <motion.div
-      ref={ref}
+      ref={(node) => {
+        registerRevealNode(node);
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      }}
       className={className}
       variants={curtainVariants}
       animate={isMouseIn ? 'visible' : 'hidden'}
