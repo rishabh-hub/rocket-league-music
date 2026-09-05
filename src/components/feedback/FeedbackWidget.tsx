@@ -7,15 +7,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@vercel/analytics';
 import { useContextualFeedbackContext } from '@/contexts/ContextualFeedbackContext';
-import {
-  MessageSquare,
-  X,
-  Bug,
-  Lightbulb,
-  Heart,
-  Wrench,
-  MessageCircle,
-} from 'lucide-react';
+import { MessageSquare, X, Heart, Wrench, MessageCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,12 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-type FeedbackType =
-  | 'bug'
-  | 'feature'
-  | 'improvement'
-  | 'appreciation'
-  | 'general';
+type FeedbackType = 'improvement' | 'appreciation' | 'general';
 
 interface FeedbackWidgetProps {
   autoShowDelay?: number; // milliseconds
@@ -72,36 +59,28 @@ function writeDismissedAt(timestamp: number) {
   }
 }
 
+// Three options, because nobody writing in wants to first decide whether their
+// annoyance is a bug or an improvement — the message itself says which it is.
+// The values are the ones the feedback API already accepts, so 'improvement'
+// carries everything actionable.
 const feedbackTypes = [
   {
-    value: 'bug' as const,
-    label: 'Bug',
-    icon: Bug,
-    description: "Something isn't working",
-  },
-  {
-    value: 'feature' as const,
-    label: 'Feature idea',
-    icon: Lightbulb,
-    description: "Something that should exist and doesn't",
-  },
-  {
     value: 'improvement' as const,
-    label: 'Improvement',
+    label: 'Something to fix or add',
     icon: Wrench,
-    description: 'Something that could work better',
+    placeholder: "What broke, or what's missing?",
   },
   {
     value: 'appreciation' as const,
-    label: 'Appreciation',
+    label: 'Something you liked',
     icon: Heart,
-    description: 'Say something nice',
+    placeholder: 'Which part?',
   },
   {
     value: 'general' as const,
     label: 'Something else',
     icon: MessageCircle,
-    description: 'Anything the other options miss',
+    placeholder: 'Anything at all.',
   },
 ];
 
@@ -169,12 +148,10 @@ export function FeedbackWidget({
         switch (context) {
           case 'replay-upload-success':
           case 'replay-stats-engagement':
-            return 'improvement';
           case 'music-recommendations-viewed':
           case 'spotify-integration-used':
-            return 'feature';
           case 'error-recovery':
-            return 'bug';
+            return 'improvement';
           case 'page-engagement':
           default:
             return 'general';
@@ -358,7 +335,8 @@ export function FeedbackWidget({
           </div>
           {showAutoPrompt && !isOpen && (
             <CardDescription className="text-primary">
-              Found a bug, or something that should work differently?
+              This is a one-person project, so it is rough in places. Tell me
+              where.
             </CardDescription>
           )}
         </CardHeader>
@@ -366,7 +344,7 @@ export function FeedbackWidget({
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="feedback-type">What type of feedback?</Label>
+              <Label htmlFor="feedback-type">What&apos;s this about?</Label>
               <Select
                 value={selectedType}
                 onValueChange={(value: FeedbackType) => setSelectedType(value)}
@@ -379,15 +357,10 @@ export function FeedbackWidget({
                     const Icon = type.icon;
                     return (
                       <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          <div>
-                            <div className="font-medium">{type.label}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {type.description}
-                            </div>
-                          </div>
-                        </div>
+                        <span className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {type.label}
+                        </span>
                       </SelectItem>
                     );
                   })}
@@ -399,22 +372,22 @@ export function FeedbackWidget({
               <Label htmlFor="feedback-message">Your message</Label>
               <Textarea
                 id="feedback-message"
-                placeholder="What happened, and what did you expect instead?"
+                placeholder={
+                  feedbackTypes.find((type) => type.value === selectedType)
+                    ?.placeholder
+                }
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="min-h-[100px] resize-none"
                 maxLength={2000}
                 required
               />
-              <div
-                className={`text-xs text-right ${
-                  message.length < 10
-                    ? 'text-destructive'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {message.length}/2000{' '}
-                {message.length < 10 ? '(minimum 10 characters)' : ''}
+              <div className="text-right text-xs text-muted-foreground">
+                {message.length === 0
+                  ? ''
+                  : message.length < 10
+                    ? '10 characters minimum'
+                    : `${message.length}/2000`}
               </div>
             </div>
 

@@ -35,6 +35,36 @@ that clear the floor on both `--card` and `--background`.
 ink/surface/alpha combination the app actually renders, `--destructive` included, so a future token
 edit that drops a pairing below AA fails the suite rather than shipping.
 
+### Feedback widget: five categories down to three
+
+The owner proposed collapsing the widget's taxonomy, and the research backs it. Published guidance on
+in-app feedback is that categorisation earns its cost only above roughly fifty submissions a month;
+below that you categorise manually from the text, and every extra decision between "I have something
+to say" and "sent" loses a share of the people who were going to say it. `Bug` / `Feature idea` /
+`Improvement` is triage the maintainer wants, pushed onto a visitor who cannot reliably perform it —
+"the upload is slow" belongs to all three. The five options also carried five one-line descriptions,
+so the widget asked someone to read ten lines before writing one.
+
+The options are now `Something to fix or add` / `Something you liked` / `Something else`, with the
+descriptions dropped, the placeholder carried per option so each choice asks its own question, and the
+shared "Something" opening echoing the widget's own title. The wire values are unchanged — the three
+map onto `improvement`, `appreciation` and `general`, which `src/app/api/feedback/route.ts` already
+accepts — so no request shape moved, no stored row was invalidated, and no migration is needed.
+
+Two copy defects surfaced while editing it. The character counter rendered `0/2000 (minimum 10
+characters)` in the destructive colour on an untouched form, scolding someone for not having started;
+it is now quiet until there is something to count. And the auto-prompt line claimed the maintainer
+reads every submission, which the code does not support — see below.
+
+### Open: submitted feedback notifies nobody
+
+`src/app/api/feedback/route.ts` inserts into the `feedback` table with `status: 'open'` and returns.
+There is no email, no webhook, no notification of any kind, even though `RESEND_API_KEY` and
+`NOTIFICATION_EMAIL` are configured and used elsewhere in the app. Feedback is only ever seen if
+someone opens the table and looks. This is not a redesign regression — it has always been so — but it
+means the widget currently collects into a room with nobody in it, and it is the reason the auto-prompt
+copy promises nothing about being read. Worth wiring up before inviting people to use the app.
+
 ---
 
 ## Confirmed findings
