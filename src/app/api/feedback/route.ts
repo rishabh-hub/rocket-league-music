@@ -1,8 +1,10 @@
 // ABOUTME: API endpoint for submitting general feedback (bugs, features, improvements, appreciation)
-// ABOUTME: Handles POST requests with authentication, validation, and rate limiting
+// ABOUTME: Stores the feedback, then emails it so a report reaches a person rather than a table.
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { Resend } from 'resend';
 import { createClient } from '@/utils/supabase/server';
+import { escapeHtml } from '@/utils/escapeHtml';
 import { z } from 'zod';
 
 const feedbackSchema = z.object({
@@ -19,6 +21,58 @@ const feedbackSchema = z.object({
     })
     .optional(),
 });
+
+// What the widget calls each type, so the inbox reads the way the app does.
+const TYPE_LABELS: Record<string, string> = {
+  bug: 'Something to fix or add',
+  feature: 'Something to fix or add',
+  improvement: 'Something to fix or add',
+  appreciation: 'Something you liked',
+  general: 'Something else',
+};
+
+/**
+ * Emails a submission to whoever runs the site. Feedback is already stored by
+ * the time this runs, so a delivery failure is logged and swallowed rather than
+ * reported to the person who wrote in — from their side the message did land.
+ */
+async function notifyOwner(feedback: {
+  id: string;
+  type: string;
+  message: string;
+  email?: string;
+  page?: string | null;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.NOTIFICATION_EMAIL;
+
+  if (!apiKey || !to) {
+    console.error(
+      'Feedback stored but not emailed: RESEND_API_KEY or NOTIFICATION_EMAIL is unset'
+    );
+    return;
+  }
+
+  const label = TYPE_LABELS[feedback.type] ?? feedback.type;
+
+  try {
+    await new Resend(apiKey).emails.send({
+      from: 'onboarding@resend.dev',
+      to,
+      subject: `ReplayRhythms feedback: ${label}`,
+      html: `
+        <h1>${escapeHtml(label)}</h1>
+        <p style="white-space:pre-wrap">${escapeHtml(feedback.message)}</p>
+        <hr />
+        <p><strong>From:</strong> ${escapeHtml(feedback.email)}</p>
+        <p><strong>Page:</strong> ${escapeHtml(feedback.page)}</p>
+        <p><strong>Feedback row:</strong> ${escapeHtml(feedback.id)}</p>
+      `,
+    });
+  } catch (error) {
+    console.error('Feedback stored but the notification email failed:', error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,6 +123,18 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // after() runs once the response is on its way, so the person who wrote in
+    // waits on the insert and not on an email round-trip.
+    after(() =>
+      notifyOwner({
+        id: data.id,
+        type: validatedData.type,
+        message: validatedData.message,
+        email: user.email,
+        page: context.page,
+      })
+    );
 
     return NextResponse.json({
       message: 'Feedback submitted successfully',

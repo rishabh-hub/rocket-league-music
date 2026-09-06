@@ -4,19 +4,10 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
+import { escapeHtml } from '@/utils/escapeHtml';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL;
-
-function escapeHtml(str: string | undefined | null): string {
-  if (!str) return 'Not available';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 
 export async function POST() {
   try {
