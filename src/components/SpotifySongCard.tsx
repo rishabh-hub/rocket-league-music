@@ -22,18 +22,6 @@ interface SpotifySongCardProps {
 // these are the only values the container may animate to.
 export const SPOTIFY_EMBED_HEIGHT = { standard: 152, full: 352 } as const;
 
-/**
- * The recommender scores a song by summing weighted criteria, so one that
- * satisfies all of them lands above 100 — the two matches on screen today both
- * read 110. A percentage over 100 reads as a broken number rather than a strong
- * match, so the display caps it. The stored score is untouched; if the ceiling
- * is doing real work here, the scale belongs back in the recommender.
- */
-export function matchPercent(score: number): number {
-  if (!Number.isFinite(score)) return 0;
-  return Math.max(0, Math.min(100, Math.round(score)));
-}
-
 export default function SpotifySongCard({
   song,
   index,
@@ -283,7 +271,7 @@ export default function SpotifySongCard({
             </div>
 
             <span className="text-xs tabular-nums text-muted-foreground">
-              {matchPercent(song.match_score)}% match
+              {song.match_score}% match
             </span>
           </div>
         </div>
