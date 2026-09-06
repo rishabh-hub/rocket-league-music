@@ -26,6 +26,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import {
+  FEEDBACK_MAX_LENGTH,
+  FEEDBACK_MIN_LENGTH,
+} from '@/utils/feedbackLimits';
 
 type FeedbackType = 'improvement' | 'appreciation' | 'general';
 
@@ -192,10 +196,10 @@ export function FeedbackWidget({
       return;
     }
 
-    if (message.trim().length < 10) {
+    if (message.trim().length < FEEDBACK_MIN_LENGTH) {
       toast({
         title: 'A bit more detail',
-        description: 'Ten characters minimum.',
+        description: `At least ${FEEDBACK_MIN_LENGTH} characters.`,
         variant: 'destructive',
       });
       return;
@@ -379,15 +383,15 @@ export function FeedbackWidget({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="min-h-[100px] resize-none"
-                maxLength={2000}
+                maxLength={FEEDBACK_MAX_LENGTH}
                 required
               />
               <div className="text-right text-xs text-muted-foreground">
                 {message.length === 0
                   ? ''
-                  : message.length < 10
-                    ? '10 characters minimum'
-                    : `${message.length}/2000`}
+                  : message.length < FEEDBACK_MIN_LENGTH
+                    ? `${FEEDBACK_MIN_LENGTH} characters minimum`
+                    : `${message.length}/${FEEDBACK_MAX_LENGTH}`}
               </div>
             </div>
 

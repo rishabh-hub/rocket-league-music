@@ -5,12 +5,16 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@/utils/supabase/server';
 import { escapeHtml } from '@/utils/escapeHtml';
+import {
+  FEEDBACK_MAX_LENGTH,
+  FEEDBACK_MIN_LENGTH,
+} from '@/utils/feedbackLimits';
 import { z } from 'zod';
 
 const feedbackSchema = z.object({
   type: z.enum(['bug', 'feature', 'improvement', 'appreciation', 'general']),
   category: z.string().optional(),
-  message: z.string().min(10).max(2000),
+  message: z.string().min(FEEDBACK_MIN_LENGTH).max(FEEDBACK_MAX_LENGTH),
   rating: z.number().min(1).max(5).optional(),
   context: z
     .object({
