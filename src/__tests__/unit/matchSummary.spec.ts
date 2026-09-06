@@ -2,7 +2,6 @@
 // ABOUTME: Fixtures are the real metrics shapes Supabase stores for ready, processing and failed replays.
 
 import { matchSummary } from '@/utils/matchSummary';
-import { Replay } from '@/types/replay';
 
 const FILE_NAME = '9F3C1D2A-4B5E-6789-ABCD-0123456789EF.replay';
 
@@ -46,26 +45,16 @@ const readyMetrics = {
   overtime_seconds: 0,
 };
 
-const replay = (metrics: any): Replay => ({
-  id: 'a1b2c3',
-  file_name: FILE_NAME,
-  status: 'ready',
-  visibility: 'private',
-  created_at: '2026-03-25T20:40:00Z',
-  updated_at: '2026-03-25T20:41:00Z',
-  metrics,
-});
-
 describe('matchSummary for a processed replay', () => {
   it('leads with the name the player gave the replay, not the file name', () => {
-    const summary = matchSummary(replay(readyMetrics));
+    const summary = matchSummary(readyMetrics, FILE_NAME);
 
     expect(summary.primary).toBe('buena partida para subir a c2');
     expect(summary.primary).not.toBe(FILE_NAME);
   });
 
   it('reads the scoreline through teams and carries playlist and map', () => {
-    const summary = matchSummary(replay(readyMetrics));
+    const summary = matchSummary(readyMetrics, FILE_NAME);
 
     expect(summary.secondary).toBe(
       'Blue 2–5 Orange · Ranked Doubles · Farmstead (Pitched)'
@@ -73,14 +62,17 @@ describe('matchSummary for a processed replay', () => {
   });
 
   it('promotes the scoreline when the replay was never named', () => {
-    const summary = matchSummary(replay({ ...readyMetrics, title: '' }));
+    const summary = matchSummary({ ...readyMetrics, title: '' }, FILE_NAME);
 
     expect(summary.primary).toBe('Blue 2–5 Orange');
     expect(summary.secondary).toBe('Ranked Doubles · Farmstead (Pitched)');
   });
 
   it('marks a match that went to overtime', () => {
-    const summary = matchSummary(replay({ ...readyMetrics, overtime: true }));
+    const summary = matchSummary(
+      { ...readyMetrics, overtime: true },
+      FILE_NAME
+    );
 
     expect(summary.secondary).toContain('Blue 2–5 Orange (OT)');
   });
@@ -89,7 +81,8 @@ describe('matchSummary for a processed replay', () => {
 describe('matchSummary for a replay that is not ready', () => {
   it('falls back to the file name once while processing, with no second line', () => {
     const summary = matchSummary(
-      replay({ check_failures: 3, last_check_error: 'timeout' })
+      { check_failures: 3, last_check_error: 'timeout' },
+      FILE_NAME
     );
 
     expect(summary.primary).toBe(FILE_NAME);
@@ -98,11 +91,12 @@ describe('matchSummary for a replay that is not ready', () => {
 
   it('explains a failure instead of repeating the file name', () => {
     const summary = matchSummary(
-      replay({
+      {
         error:
           'Upload to ballchasing.com did not complete. Please try uploading again.',
         failure_reason: 'missing_ballchasing_id',
-      })
+      },
+      FILE_NAME
     );
 
     expect(summary.primary).toBe(FILE_NAME);
@@ -112,7 +106,7 @@ describe('matchSummary for a replay that is not ready', () => {
   });
 
   it('handles a replay whose metrics column is still empty', () => {
-    const summary = matchSummary(replay(undefined));
+    const summary = matchSummary(undefined, FILE_NAME);
 
     expect(summary.primary).toBe(FILE_NAME);
     expect(summary.secondary).toBeNull();

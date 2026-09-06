@@ -212,7 +212,7 @@ export default function ReplaysPage() {
               </TableHeader>
               <TableBody>
                 {replays.map((replay) => {
-                  const summary = matchSummary(replay);
+                  const summary = matchSummary(replay.metrics, replay.file_name);
 
                   return (
                     <TableRow key={replay.id}>

@@ -129,7 +129,7 @@ export default function ShowcasePage() {
       ) : (
         <motion.div variants={container} initial="hidden" animate="show">
           {replays.map((replay) => {
-            const summary = matchSummary(replay);
+            const summary = matchSummary(replay.metrics, replay.file_name);
             const isNew =
               Date.now() - new Date(replay.created_at).getTime() <
               NEW_REPLAY_WINDOW_MS;

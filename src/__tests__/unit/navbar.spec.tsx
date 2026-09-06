@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 
 import { Navbar } from '@/components/navbar/navbar'; // Adjust path as needed
 
@@ -46,6 +46,11 @@ jest.mock('@/components/navbar/user-dropdown', () => ({
 }));
 
 // Mock i18n Link component
+// The narrow-screen menu pulls in lucide, which ships ESM.
+jest.mock('lucide-react', () => ({
+  Menu: () => <span data-testid="icon-menu" />,
+}));
+
 jest.mock('@/lib/i18n', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Link: (props: any) => <a href={props.href}>{props.children}</a>,
@@ -155,5 +160,27 @@ describe('Navbar Component', () => {
     expect(mockSelect).toHaveBeenCalledWith('status, price_id');
     expect(mockEq).toHaveBeenCalledWith('user_id', 'user-456');
     expect(mockSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers the same routes behind the narrow-screen menu', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+
+    render(await Navbar());
+
+    // The menu button is what a phone gets in place of the link row.
+    const trigger = await screen.findByRole('button', { name: 'Open menu' });
+    expect(trigger).toBeInTheDocument();
+
+    // The wide-screen row is still rendered, just hidden by CSS below sm.
+    const wideNav = screen.getByRole('navigation');
+    for (const [label, href] of [
+      ['Upload replay', '/upload-replay'],
+      ['My replays', '/replays'],
+      ['Showcase', '/showcase'],
+    ]) {
+      expect(
+        within(wideNav).getByRole('link', { name: label })
+      ).toHaveAttribute('href', href);
+    }
   });
 });

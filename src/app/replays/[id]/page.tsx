@@ -5,17 +5,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { matchSummary } from '@/utils/matchSummary';
+import { ShareDialog } from '@/components/ShareDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  ArrowLeft,
-  AlertTriangle,
-  ChevronRight,
-  Loader2,
-  Share2,
-} from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ChevronRight, Loader2 } from 'lucide-react';
 import ReplayStats from '@/components/ReplayStats';
 import PlayerStats from '@/components/PlayerStats';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -404,23 +400,12 @@ export default function ReplayDetailsPage() {
             </Button>
           )}
 
-          {/* Share button for showcase replays */}
+          {/* Share sheet, offered once the match is public */}
           {replay.visibility === 'public' && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={() => {
-                const url = window.location.href;
-                navigator.clipboard.writeText(url);
-                toast({
-                  title: 'Link copied',
-                });
-              }}
-            >
-              <Share2 className="h-4 w-4 mr-1" />
-              Share
-            </Button>
+            <ShareDialog
+              url={typeof window === 'undefined' ? '' : window.location.href}
+              summary={matchSummary(replay.metrics, replay.fileName).primary}
+            />
           )}
           {!isShowcase && isUserOwner && (
             <div className="ml-auto">

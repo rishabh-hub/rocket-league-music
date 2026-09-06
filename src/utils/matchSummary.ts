@@ -1,8 +1,6 @@
 // ABOUTME: Builds the two-line summary a replay shows in list views.
 // ABOUTME: Reads the nested metrics shape extractMetrics writes and degrades to the file name.
 
-import { Replay } from '@/types/replay';
-
 /**
  * The two lines a replay row renders: a headline and its supporting detail.
  */
@@ -46,16 +44,20 @@ function failureMessage(metrics: any): string | null {
 }
 
 /**
- * Summarises a replay for a list row. Leads with the name the player gave the
- * replay in game, since that is the line they recognise, and falls back through
- * the scoreline to the uploaded file name.
+ * Summarises a match for a list row or a share sheet. Leads with the name the
+ * player gave the replay in game, since that is the line they recognise, and
+ * falls back through the scoreline to whatever label the caller has — the two
+ * row shapes in this app spell the file name differently, so the caller passes
+ * it rather than the whole row.
  */
-export function matchSummary(replay: Replay): MatchSummary {
-  const metrics = replay.metrics;
+export function matchSummary(
+  metrics: any,
+  fallbackLabel: string
+): MatchSummary {
   const score = scoreline(metrics);
   const title = typeof metrics?.title === 'string' ? metrics.title.trim() : '';
 
-  const primary = title || score || replay.file_name;
+  const primary = title || score || fallbackLabel;
 
   const details = [
     primary === score ? null : score,

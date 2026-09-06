@@ -1,4 +1,6 @@
 // import { auth } from '@/app/api/auth/[...nextauth]/auth-options';
+import { MobileNav } from '@/components/navbar/mobile-nav';
+import { NAV_LINKS } from '@/components/navbar/nav-links';
 import { SignInButton } from '@/components/navbar/sign-in-button';
 import { UserDropdown } from '@/components/navbar/user-dropdown';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -46,26 +48,18 @@ export const Navbar = async () => {
           ReplayRhythms
         </Link>
         <nav className="hidden items-center gap-6 text-sm sm:flex">
-          <Link
-            href="/upload-replay"
-            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
-          >
-            Upload replay
-          </Link>
-          <Link
-            href="/replays"
-            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
-          >
-            My replays
-          </Link>
-          <Link
-            href="/showcase"
-            className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
-          >
-            Showcase
-          </Link>
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-muted-foreground transition-colors duration-instant hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
+          <MobileNav />
           {user ? (
             <UserDropdown
               session={user.email || user.user_metadata?.email || 'User'}
