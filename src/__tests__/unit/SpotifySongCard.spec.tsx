@@ -5,6 +5,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import SpotifySongCard, {
   SPOTIFY_EMBED_HEIGHT,
+  matchPercent,
 } from '@/components/SpotifySongCard';
 import { Song } from '@/types/spotify';
 
@@ -237,5 +238,24 @@ describe('SpotifySongCard', () => {
     expect(player).toBeTruthy();
     expect(player).toHaveClass('box-content');
     expect(player).toHaveClass('border');
+  });
+
+  // The recommender can score above 100, and both matches on screen today read
+  // 110. Showing that verbatim reads as a broken number, not a strong match.
+  it('never shows a match above 100 per cent', () => {
+    expect(matchPercent(110)).toBe(100);
+    expect(matchPercent(85)).toBe(85);
+    expect(matchPercent(86.4)).toBe(86);
+    expect(matchPercent(-5)).toBe(0);
+    expect(matchPercent(NaN)).toBe(0);
+  });
+
+  it('caps an over-scored song on the card itself', () => {
+    render(
+      <SpotifySongCard song={{ ...baseSong, match_score: 110 }} index={0} />
+    );
+
+    expect(screen.getByText('100% match')).toBeInTheDocument();
+    expect(screen.queryByText('110% match')).not.toBeInTheDocument();
   });
 });
