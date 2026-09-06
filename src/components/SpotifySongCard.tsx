@@ -17,6 +17,11 @@ interface SpotifySongCardProps {
   onPlayStateChange?: (isPlaying: boolean, songIndex: number) => void;
 }
 
+// The two heights Spotify's embed actually honours. Anything between them
+// renders the 80px compact player with the leftover space painted white, so
+// these are the only values the container may animate to.
+export const SPOTIFY_EMBED_HEIGHT = { standard: 152, full: 352 } as const;
+
 export default function SpotifySongCard({
   song,
   index,
@@ -130,9 +135,15 @@ export default function SpotifySongCard({
           {/* Single Animated Spotify Player with Border Fix */}
           {trackId && (
             <motion.div
-              className="overflow-hidden rounded-lg bg-surface border border-border/50"
+              // box-content keeps the border outside the animated height. Spotify
+              // only draws its standard player at 152px and its full one at 352px;
+              // a single pixel under either and the embed silently falls back to
+              // the 80px compact player, leaving a white band for the remainder.
+              className="box-content overflow-hidden rounded-lg bg-surface border border-border/50"
               animate={{
-                height: isExpanded ? 352 : 152,
+                height: isExpanded
+                  ? SPOTIFY_EMBED_HEIGHT.full
+                  : SPOTIFY_EMBED_HEIGHT.standard,
               }}
               transition={{
                 duration: 0.4,

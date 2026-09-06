@@ -3,7 +3,9 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import SpotifySongCard from '@/components/SpotifySongCard';
+import SpotifySongCard, {
+  SPOTIFY_EMBED_HEIGHT,
+} from '@/components/SpotifySongCard';
 import { Song } from '@/types/spotify';
 
 // --- Mocks ---
@@ -216,5 +218,24 @@ describe('SpotifySongCard', () => {
 
     expect(screen.getByText('70% match')).toBeInTheDocument();
     expect(screen.queryByText('Good Match')).not.toBeInTheDocument();
+  });
+
+  // Spotify's embed draws its standard player only when it is given a full
+  // 152px, and its full player at 352px. One pixel short of either and it
+  // silently swaps to the 80px compact player and paints the leftover space
+  // white. The container's border must therefore sit outside the height the
+  // iframe receives, which is what box-content buys.
+  it('offers only the two heights the Spotify embed honours', () => {
+    expect(SPOTIFY_EMBED_HEIGHT.standard).toBe(152);
+    expect(SPOTIFY_EMBED_HEIGHT.full).toBe(352);
+  });
+
+  it('keeps the player border outside the height the iframe is given', () => {
+    const { container } = render(<SpotifySongCard song={baseSong} index={0} />);
+
+    const player = container.querySelector('iframe')?.parentElement;
+    expect(player).toBeTruthy();
+    expect(player).toHaveClass('box-content');
+    expect(player).toHaveClass('border');
   });
 });
