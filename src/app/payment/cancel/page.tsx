@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function PaymentCancelPage() {
   return (
-    <div className="container flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center text-center">
+    <div className="container flex flex-1 flex-col items-center justify-center text-center">
       <Card className="mx-auto max-w-md p-6">
         <XCircle
           className="text-muted-foreground mx-auto mb-4 size-10"

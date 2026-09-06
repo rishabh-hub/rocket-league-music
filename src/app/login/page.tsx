@@ -36,7 +36,7 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+    <div className="flex flex-1 items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <Image

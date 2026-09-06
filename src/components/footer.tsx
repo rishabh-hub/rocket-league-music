@@ -3,8 +3,8 @@
 
 export const Footer = () => {
   return (
-    <footer className="mt-24 border-t border-border">
-      <div className="container flex h-16 items-center justify-between text-xs text-muted-foreground">
+    <footer className="mt-auto border-t border-border">
+      <div className="container flex min-h-16 flex-col items-start justify-between gap-1 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-4 sm:py-0">
         <span>ReplayRhythms</span>
         <span>Replay data via ballchasing.com · Tracks via Spotify</span>
       </div>

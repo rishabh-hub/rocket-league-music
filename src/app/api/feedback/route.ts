@@ -60,7 +60,10 @@ async function notifyOwner(feedback: {
   const label = TYPE_LABELS[feedback.type] ?? feedback.type;
 
   try {
-    await new Resend(apiKey).emails.send({
+    // The SDK reports a rejected send in its return value rather than by
+    // throwing, so the error branch below is the one that actually fires. The
+    // try/catch still guards a genuine throw, such as a malformed key.
+    const { error } = await new Resend(apiKey).emails.send({
       from: 'onboarding@resend.dev',
       to,
       subject: `ReplayRhythms feedback: ${label}`,
@@ -73,8 +76,15 @@ async function notifyOwner(feedback: {
         <p><strong>Feedback row:</strong> ${escapeHtml(feedback.id)}</p>
       `,
     });
+
+    if (error) {
+      console.error(
+        'Feedback stored but the notification email failed:',
+        error
+      );
+    }
   } catch (error) {
-    console.error('Feedback stored but the notification email failed:', error);
+    console.error('Feedback stored but the notification email threw:', error);
   }
 }
 

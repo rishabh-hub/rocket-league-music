@@ -89,7 +89,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
             href="https://o4509433100959744.ingest.de.sentry.io"
           />
         </head>
-        <body className={cn('min-h-screen font-sans', fonts)}>
+        <body className={cn('flex min-h-screen flex-col font-sans', fonts)}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -104,7 +104,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
                   </Suspense>
                   <Navbar />
                   <ResumeTracker />
-                  {children}
+                  <main className="flex flex-1 flex-col">{children}</main>
                   <Footer />
                   <Analytics />
                   <SpeedInsights />

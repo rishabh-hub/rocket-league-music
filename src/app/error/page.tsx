@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function ErrorPage() {
   return (
-    <div className="container flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center text-center">
+    <div className="container flex flex-1 flex-col items-center justify-center text-center">
       <Card className="mx-auto max-w-md p-6">
         <h1 className="mb-4 text-2xl font-semibold">That did not go through</h1>
         <p className="text-muted-foreground mb-6">

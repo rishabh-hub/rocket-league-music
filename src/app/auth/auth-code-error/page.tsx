@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function AuthCodeErrorPage() {
   return (
-    <div className="container flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
+    <div className="container flex flex-1 flex-col items-center justify-center p-4">
       <Card className="mx-auto max-w-md p-6 text-center">
         <h1 className="mb-4 text-2xl font-semibold">
           That sign-in link expired

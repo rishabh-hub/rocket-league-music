@@ -201,17 +201,19 @@ export default function SongRecommendations({
                       generateRecommendations(player.id, player.name)
                     }
                     disabled={loading}
-                    className="flex items-center justify-between p-3 h-auto"
+                    className="flex h-auto flex-col items-start justify-between gap-1 whitespace-normal p-3 sm:flex-row sm:items-center sm:gap-3"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{player.name}</span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate font-medium">
+                        {player.name}
+                      </span>
                       {player.mvp && (
                         <Badge variant="secondary" className="text-xs">
                           MVP
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground tabular-nums">
+                    <div className="shrink-0 text-xs text-muted-foreground tabular-nums">
                       {player.goals || 0} goals · {player.saves || 0} saves ·{' '}
                       {player.assists || 0} assists
                     </div>

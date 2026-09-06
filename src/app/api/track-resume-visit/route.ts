@@ -39,7 +39,8 @@ export async function POST() {
       visitorData.email = session.user.email;
     }
 
-    await resend.emails.send({
+    // The SDK reports a rejected send in its return value, not by throwing.
+    const { error: sendError } = await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: NOTIFICATION_EMAIL,
       subject:
@@ -54,6 +55,10 @@ export async function POST() {
         ${visitorData.loggedIn ? `<p><strong>User Email:</strong> ${escapeHtml(visitorData.email)}</p>` : '<p><strong>Login Status:</strong> Not logged in</p>'}
       `,
     });
+
+    if (sendError) {
+      console.error('Resume-visit notification failed to send:', sendError);
+    }
 
     // Clear the tracking cookie as we've now sent the notification
     (
